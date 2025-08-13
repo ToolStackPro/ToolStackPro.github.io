@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>🧮 Magic Number Explorer</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #121822;
+    color: #cbd5e1;
+    margin: 0; padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+  h1 {
+    margin-bottom: 0.5rem;
+    color: #38bdf8;
+    user-select: none;
+  }
+  label {
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+  input[type="number"] {
+    font-size: 1.2rem;
+    padding: 0.4rem 0.6rem;
+    margin-left: 0.8rem;
+    width: 180px;
+    border-radius: 8px;
+    border: 2px solid #38bdf8;
+    background: #1e293b;
+    color: #cbd5e1;
+  }
+  button {
+    margin-left: 1rem;
+    background: #0ea5e9;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 0.5rem 1.2rem;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s;
+  }
+  button:hover {
+    background: #0284c7;
+  }
+  .result {
+    margin-top: 1.5rem;
+    max-width: 500px;
+    background: #1e293b;
+    padding: 1rem 1.5rem;
+    border-radius: 14px;
+    box-shadow: 0 0 15px #0284c7aa;
+  }
+  .prime-factors,
+  .trivia {
+    margin-top: 1rem;
+    font-size: 1.1rem;
+  }
+  .spiral-container {
+    margin-top: 2rem;
+    background: #0f172a;
+    border-radius: 14px;
+    padding: 1rem;
+    box-shadow: 0 0 20px #38bdf866;
+  }
+  canvas {
+    display: block;
+    border-radius: 14px;
+    background: #1e293b;
+    width: 320px;
+    height: 320px;
+  }
+  small {
+    display: block;
+    margin-top: 1rem;
+    color: #94a3b8;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<h1>🧮 Magic Number Explorer</h1>
+<label for="numberInput">Enter a positive integer:</label>
+<input id="numberInput" type="number" min="2" step="1" value="42" aria-label="Number input" />
+<button id="exploreBtn">Explore</button>
+
+<div class="result" aria-live="polite" aria-atomic="true">
+  <div class="prime-factors" id="primeFactors"></div>
+  <div class="trivia" id="trivia"></div>
+</div>
+
+<div class="spiral-container" aria-label="Spiral graph visualization of prime factors exponents">
+  <canvas id="spiralCanvas" width="320" height="320" role="img" aria-live="polite" aria-atomic="true"></canvas>
+</div>
+<small>Spiral graph shows multiplicities of prime factors visually.</small>
+
+<script>
+  const numberInput = document.getElementById('numberInput');
+  const exploreBtn = document.getElementById('exploreBtn');
+  const primeFactorsDiv = document.getElementById('primeFactors');
+  const triviaDiv = document.getElementById('trivia');
+  const canvas = document.getElementById('spiralCanvas');
+  const ctx = canvas.getContext('2d');
+  const width = canvas.width;
+  const height = canvas.height;
+  const centerX = width / 2;
+  const centerY = height / 2;
+
+  // Prime factorization function (trial division)
+  function primeFactorization(n) {
+    const factors = [];
+    let num = n;
+
+    // Handle 2 separately
+    while (num % 2 === 0) {
+      factors.push(2);
+      num /= 2;
+    }
+    // Odd factors from 3 upwards
+    for (let i = 3; i <= Math.sqrt(num); i += 2) {
+      while (num % i === 0) {
+        factors.push(i);
+        num /= i;
+      }
+    }
+    if (num > 2) factors.push(num);
+    return factors;
+  }
+
+  // Generate string with factorization (e.g. 2^3 × 3^1)
+  function formatFactorization(factors) {
+    if (factors.length === 0) return '';
+    const counts = {};
+    factors.forEach(f => counts[f] = (counts[f] || 0) + 1);
+    return Object.entries(counts)
+      .map(([prime, exp]) => exp > 1 ? `${prime}^${exp}` : prime)
+      .join(' × ');
+  }
+
+  // Fun trivia for some numbers
+  const triviaMap = {
+    1: "1 is the multiplicative identity.",
+    2: "2 is the only even prime number.",
+    3: "3 is the first odd prime number.",
+    7: "7 is considered a lucky number in many cultures.",
+    13: "13 is often considered an unlucky number.",
+    42: "42 is the answer to life, the universe, and everything!",
+    69: "69 is a number with humorous connotations.",
+    100: "100 is a perfect square and a common round number.",
+    360: "360 degrees in a circle, full rotation!",
+    666: "666 is known as the 'number of the beast'.",
+    1729: "1729 is the Hardy-Ramanujan number, the smallest number expressible as the sum of two cubes in two ways."
+  };
+
+  // Draw spiral visualization of prime factor exponents
+  function drawSpiral(factors) {
+    ctx.clearRect(0, 0, width, height);
+
+    if (factors.length === 0) {
+      ctx.fillStyle = '#64748b'; // gray
+      ctx.font = '16px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('No prime factors', centerX, centerY);
+      return;
+    }
+
+    // Count prime factor exponents
+    const counts = {};
+    factors.forEach(f => counts[f] = (counts[f] || 0) + 1);
+
+    const primes = Object.keys(counts).map(Number).sort((a,b) => a - b);
+    const maxExp = Math.max(...Object.values(counts));
+
+    // Settings for spiral
+    const maxRadius = width/2 - 20;
+    const pointsPerTurn = 30;
+    const totalPoints = primes.length * maxExp * pointsPerTurn;
+
+    ctx.lineWidth = 2;
+
+    primes.forEach((prime, pi) => {
+      const exp = counts[prime];
+      // Color shade based on prime (mapped to hue)
+      const hue = (prime * 36) % 360;
+      ctx.strokeStyle = `hsl(${hue}, 80%, 70%)`;
+
+      ctx.beginPath();
+
+      // We'll draw exp stacked spiral segments each as an Archimedean spiral with offset radius
+      for (let e = 1; e <= exp; e++) {
+        for (let t = 0; t <= pointsPerTurn; t++) {
+          // Angle in radians for rotation (t grows)
+          let angle = 2 * Math.PI * (t / pointsPerTurn + (e - 1));
+          // Radius increases with angle and exponent layer
+          let radius = (maxRadius / (exp + 1)) * e + (pi + 1) * 8 + (angle * 2);
+
+          let x = centerX + radius * Math.cos(angle);
+          let y = centerY + radius * Math.sin(angle);
+
+          if (t === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+      }
+      ctx.stroke();
+
+      // Draw prime number label on last spiral loop end point
+      let angle = 2 * Math.PI * (pointsPerTurn / pointsPerTurn + (exp - 1));
+      let radius = (maxRadius / (exp + 1)) * exp + (pi + 1) * 8 + (angle * 2);
+      let x = centerX + radius * Math.cos(angle);
+      let y = centerY + radius * Math.sin(angle);
+
+      ctx.fillStyle = `hsl(${hue}, 90%, 80%)`;
+      ctx.font = '14px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${prime}^${exp}`, x, y);
+    });
+  }
+
+  // Display number curiosities
+  function displayCuriosities(num) {
+    primeFactorsDiv.textContent = '';
+    triviaDiv.textContent = '';
+
+    // Prime factorization
+    const factors = primeFactorization(num);
+    primeFactorsDiv.textContent = `Prime Factorization: ${formatFactorization(factors)}`;
+
+    // Trivia
+    const trivia = triviaMap[num];
+    if (trivia) {
+      triviaDiv.textContent = `Trivia: ${trivia}`;
+    } else if (num === 0) {
+      triviaDiv.textContent = `Trivia: Zero is the integer that separates positive and negative numbers.`;
+    } else {
+      triviaDiv.textContent = `Trivia: No special trivia found for ${num}.`;
+    }
+
+    // Draw spiral
+    drawSpiral(factors);
+  }
+
+  exploreBtn.addEventListener('click', () => {
+    const val = parseInt(numberInput.value, 10);
+    if (isNaN(val) || val < 2) {
+      primeFactorsDiv.textContent = 'Please enter a valid integer ≥ 2';
+      triviaDiv.textContent = '';
+      ctx.clearRect(0, 0, width, height);
+      return;
+    }
+    displayCuriosities(val);
+  });
+
+  // Initial demo on load
+  displayCuriosities(parseInt(numberInput.value, 10));
+</script>
+
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>🎲 Decision Dice with Choice Count</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600&display=swap');
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: #e0f7fa;
+    margin: 0; padding: 2rem;
+    display: flex; justify-content: center; align-items: flex-start; 
+    min-height: 100vh;
+    color: #045d56;
+  }
+  main {
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 12px 24px rgba(4,93,86,0.15);
+    width: 360px;
+    text-align: center;
+  }
+
+  h1 {
+    margin-bottom: 0.25rem;
+    font-weight: 800;
+    font-size: 2.25rem;
+    user-select: none;
+  }
+  label {
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+  select {
+    margin-top: 0.5rem;
+    padding: 0.4rem 0.7rem;
+    border-radius: 8px;
+    border: 2px solid #00bfa5;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    color: #00796b;
+    transition: border-color 0.3s ease;
+  }
+  select:focus {
+    border-color: #004d40;
+    outline: none;
+  }
+  .choices-inputs {
+    margin: 1.5rem 0 2rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+  .choices-inputs input {
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.6rem 0.8rem;
+    border-radius: 10px;
+    border: 2px solid #00796b;
+    transition: border-color 0.3s ease;
+    color: #004d40;
+  }
+  .choices-inputs input::placeholder {
+    font-style: italic;
+    color: #80cbc4;
+  }
+  .choices-inputs input:focus {
+    outline: none;
+    border-color: #004d40;
+  }
+
+  button {
+    background: #00bfa5;
+    color: white;
+    font-weight: 700;
+    font-size: 1.15rem;
+    padding: 0.75rem 2.2rem;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 6px 12px rgb(0 191 165 / 0.4);
+    transition: background-color 0.3s ease;
+  }
+  button:disabled {
+    background: #80cbc4;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+  button:hover:not(:disabled) {
+    background: #009e87;
+  }
+
+  .dice {
+    margin: 2rem auto 1.5rem auto;
+    width: 120px;
+    height: 120px;
+    background: white;
+    border-radius: 24px;
+    box-shadow:
+      0 10px 20px rgb(0 191 165 / 0.35),
+      inset 0 0 15px #80cbc4;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 900;
+    font-size: 1.4rem;
+    color: #00796b;
+    user-select: none;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.3s ease;
+  }
+  .dice:hover {
+    box-shadow:
+      0 15px 30px rgb(0 191 165 / 0.55),
+      inset 0 0 20px #4db6ac;
+  }
+  .rolling {
+    animation: roll 0.6s linear infinite;
+  }
+  @keyframes roll {
+    0% { transform: rotate(0deg) translateX(0) rotate(0deg); }
+    25% { transform: rotate(15deg) translateX(8px) rotate(-15deg); }
+    50% { transform: rotate(-15deg) translateX(-8px) rotate(15deg); }
+    75% { transform: rotate(15deg) translateX(8px) rotate(-15deg); }
+    100% { transform: rotate(0deg) translateX(0) rotate(0deg);}
+  }
+  #result {
+    color: #00796b;
+    font-weight: 700;
+    font-size: 1.35rem;
+    min-height: 2em;
+    user-select: none;
+  }
+  small.tip {
+    margin-top: 0.8rem;
+    font-style: italic;
+    color: #004d40aa;
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>🎲 Decision Dice</h1>
+  <label for="numChoices">How many choices?</label>
+  <select id="numChoices" aria-label="Number of choices">
+    <!-- We'll fill options 2 to 10 dynamically in JS -->
+  </select>
+
+  <div class="choices-inputs" id="choicesInputs" aria-live="polite" aria-relevant="additions"></div>
+
+  <button id="rollBtn" disabled aria-disabled="true">Roll Dice</button>
+
+  <div class="dice" id="dice" aria-live="polite" aria-atomic="true" title="Click to roll dice">🎲</div>
+
+  <div id="result" role="status" aria-live="polite" style="min-height:2rem"></div>
+
+  <small class="tip">Enter your options, then click the dice or roll button.</small>
+</main>
+
+<script>
+  const numChoicesSelect = document.getElementById('numChoices');
+  const choicesInputsDiv = document.getElementById('choicesInputs');
+  const rollBtn = document.getElementById('rollBtn');
+  const dice = document.getElementById('dice');
+  const result = document.getElementById('result');
+
+  // Step 1: Populate number of choices (2 to 10)
+  function populateNumChoices() {
+    for (let i = 2; i <= 10; i++) {
+      const option = document.createElement('option');
+      option.value = i;
+      option.textContent = i;
+      numChoicesSelect.appendChild(option);
+    }
+    numChoicesSelect.value = '2';
+  }
+
+  // Step 2: Render inputs based on selection
+  function renderInputs(count) {
+    choicesInputsDiv.innerHTML = '';
+    for (let i = 1; i <= count; i++) {
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = `Choice ${i}`;
+      input.setAttribute('aria-label', `Choice number ${i}`);
+      input.autocomplete = "off";
+      input.spellcheck = false;
+      choicesInputsDiv.appendChild(input);
+    }
+    validateInputs();
+  }
+
+  // Step 3: Validate inputs (enable roll button only if all filled)
+  function validateInputs() {
+    const inputs = choicesInputsDiv.querySelectorAll('input');
+    const allFilled = [...inputs].every(input => input.value.trim().length > 0);
+    rollBtn.disabled = !allFilled;
+    rollBtn.setAttribute('aria-disabled', String(!allFilled));
+  }
+
+  // Step 4: Rolling animation + result display
+  function rollDice() {
+    const inputs = [...choicesInputsDiv.querySelectorAll('input')];
+    const options = inputs.map(i => i.value.trim());
+    if (options.length < 2 || options.some(o => o.length===0)) return;
+
+    rollBtn.disabled = true;
+    rollBtn.setAttribute('aria-disabled', "true");
+    dice.classList.add('rolling');
+    result.textContent = '';
+    dice.setAttribute('aria-label', 'Rolling dice');
+
+    const rollDuration = 2200;
+    let intervalId;
+
+    // During roll, display random options every ~100ms, truncated if very long
+    intervalId = setInterval(() => {
+      const randomOption = options[Math.floor(Math.random()*options.length)];
+      // Limit shown text on dice face to 7 chars max safely
+      dice.textContent = randomOption.length > 7 ? randomOption.slice(0, 6) + '…' : randomOption;
+    }, 100);
+
+    setTimeout(() => {
+      clearInterval(intervalId);
+      dice.classList.remove('rolling');
+      const chosen = options[Math.floor(Math.random()*options.length)];
+      dice.textContent = chosen;
+      result.textContent = `Decision: ${chosen} 🎉`;
+      rollBtn.disabled = false;
+      rollBtn.setAttribute('aria-disabled', "false");
+      dice.setAttribute('aria-label', `Dice showing: ${chosen}`);
+    }, rollDuration);
+  }
+
+  // Init
+  populateNumChoices();
+  renderInputs(+numChoicesSelect.value);
+
+  // Events
+  numChoicesSelect.addEventListener('change', e => {
+    renderInputs(+e.target.value);
+    result.textContent = '';
+    dice.textContent = '🎲';
+  });
+
+  choicesInputsDiv.addEventListener('input', () => {
+    validateInputs();
+  });
+
+  rollBtn.addEventListener('click', rollDice);
+  dice.addEventListener('click', () => {
+    if (!rollBtn.disabled) rollDice();
+  });
+
+  // Accessibility: allow space/enter keys on dice to roll
+  dice.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') && !rollBtn.disabled) {
+      e.preventDefault();
+      rollDice();
+    }
+  });
+
+  dice.tabIndex = 0; // make dice focusable
+  dice.setAttribute('role', 'button'); // announce as button for screen readers
+</script>
+</body>
+</html>

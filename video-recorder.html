@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Video Recorder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7f8;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+      color: #333;
+      text-align: center;
+    }
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    video {
+      width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      margin-top: 15px;
+    }
+    button {
+      font-size: 1rem;
+      padding: 10px;
+      margin: 0.5rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: #2980b9;
+      color: white;
+      width: 140px;
+      transition: background-color 0.3s ease;
+    }
+    button:hover:not(:disabled) {
+      background-color: #3498db;
+    }
+    button:disabled {
+      background-color: #95a5a6;
+      cursor: not-allowed;
+    }
+    #downloadLink {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #27ae60;
+      color: white;
+      font-weight: bold;
+      border-radius: 4px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #downloadLink:hover {
+      background-color: #2ecc71;
+    }
+    #statusMessage {
+      margin-top: 10px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: #e67e22; /* orange */
+      min-height: 1.4em; /* reserve space */
+      user-select: none;
+    }
+    .about-section {
+      margin-top: 30px;
+      background: #fff3cd;
+      border-left: 5px solid #ffeeba;
+      padding: 15px 20px;
+      border-radius: 4px;
+      color: #856404;
+      font-size: 1em;
+      line-height: 1.5;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Video Recorder</h1>
+
+  <!-- Video element to show live camera preview -->
+  <video id="preview" autoplay muted></video>
+
+  <!-- Buttons to control recording -->
+  <div>
+    <button id="startBtn">Start Recording</button>
+    <button id="stopBtn" disabled>Stop Recording</button>
+  </div>
+
+  <div id="statusMessage"></div>
+
+  <!-- Video element to play back recorded video -->
+  <video id="recordedVideo" controls style="display: none; margin-top: 15px;"></video>
+
+  <!-- Download link for the recorded video -->
+  <a id="downloadLink" style="display: none;" download="recorded-video.webm">Download Recorded Video</a>
+
+  <div class="about-section">
+    <h2>About this Recorder</h2>
+    <p>
+      This simple Video Recorder lets you record video and audio directly from your device’s webcam and microphone using only your browser — without any backend or software installation.
+    </p>
+    <p>
+      Features include:
+      <ul>
+        <li><strong>Live Preview:</strong> See yourself before and during recording.</li>
+        <li><strong>Recording Controls:</strong> Start and stop recording easily.</li>
+        <li><strong>Playback & Download:</strong> Review your recorded video and save it as a WebM file.</li>
+        <li><strong>Privacy:</strong> No data leaves your device; recordings are processed locally.</li>
+        <li><strong>Browser-based:</strong> Works in all modern browsers with webcam support.</li>
+      </ul>
+    </p>
+    <p>
+      This tool is perfect for capturing quick video messages, demonstrations, or interviews on the fly with no hassle.
+    </p>
+  </div>
+
+  <script>
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const preview = document.getElementById('preview');
+    const recordedVideo = document.getElementById('recordedVideo');
+    const downloadLink = document.getElementById('downloadLink');
+    const statusMessage = document.getElementById('statusMessage');
+
+    let mediaRecorder;
+    let recordedChunks = [];
+    let stream;
+    let prepareTimeout;
+
+    startBtn.addEventListener('click', () => {
+      // Show preparing message
+      statusMessage.textContent = 'Preparing to record...';
+
+      // Disable buttons temporarily during preparation
+      startBtn.disabled = true;
+      stopBtn.disabled = true;
+      recordedVideo.style.display = 'none';
+      downloadLink.style.display = 'none';
+      preview.srcObject = null;
+
+      // Small delay before actually starting recording to show message
+      prepareTimeout = setTimeout(async () => {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+          preview.srcObject = stream;
+
+          mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp8,opus' });
+
+          recordedChunks = [];
+          mediaRecorder.ondataavailable = event => {
+            if (event.data.size > 0) {
+              recordedChunks.push(event.data);
+            }
+          };
+
+          mediaRecorder.onstop = () => {
+            const blob = new Blob(recordedChunks, { type: 'video/webm' });
+            const videoURL = URL.createObjectURL(blob);
+
+            recordedVideo.src = videoURL;
+            recordedVideo.style.display = 'block';
+
+            downloadLink.href = videoURL;
+            downloadLink.style.display = 'inline-block';
+
+            // Stop preview stream
+            stream.getTracks().forEach(track => track.stop());
+            preview.srcObject = null;
+
+            statusMessage.textContent = ''; // clear status
+          };
+
+          mediaRecorder.start();
+
+          stopBtn.disabled = false;
+          statusMessage.textContent = '● Recording...';
+
+        } catch (err) {
+          statusMessage.textContent = '';
+          alert('Could not access camera and microphone. Permission denied or no device found.');
+          startBtn.disabled = false;
+          stopBtn.disabled = true;
+        }
+      }, 1200); // 1.2 seconds delay
+    });
+
+    stopBtn.addEventListener('click', () => {
+      clearTimeout(prepareTimeout);
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        statusMessage.textContent = 'Stopping recording...';
+      }
+    });
+  </script>
+
+</body>
+</html>

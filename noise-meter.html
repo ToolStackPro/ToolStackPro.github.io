@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Noise Meter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7f8;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+      color: #333;
+      text-align: center;
+    }
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    #volumeMeter {
+      margin: 20px auto 10px;
+      width: 100%;
+      height: 30px;
+      background: #ddd;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+    }
+    #volumeLevel {
+      height: 100%;
+      background: linear-gradient(90deg, #27ae60, #2ecc71);
+      width: 0%;
+      transition: width 0.1s ease-out;
+      border-radius: 8px 0 0 8px;
+    }
+    #decibelValue {
+      font-weight: bold;
+      font-size: 1.5rem;
+      color: #27ae60;
+      margin-top: 10px;
+      min-height: 2rem;
+      user-select: none;
+      font-family: monospace;
+    }
+    button {
+      font-size: 1rem;
+      padding: 10px;
+      margin: 0.5rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: #2980b9;
+      color: white;
+      width: 140px;
+      transition: background-color 0.3s ease;
+    }
+    button:hover:not(:disabled) {
+      background-color: #3498db;
+    }
+    button:disabled {
+      background-color: #95a5a6;
+      cursor: not-allowed;
+    }
+    #statusMessage {
+      margin-top: 10px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: #e67e22; /* orange */
+      min-height: 1.4em; /* reserve space */
+      user-select: none;
+      font-family: monospace;
+    }
+    .about-section {
+      margin-top: 30px;
+      background: #fff3cd;
+      border-left: 5px solid #ffeeba;
+      padding: 15px 20px;
+      border-radius: 4px;
+      color: #856404;
+      font-size: 1em;
+      line-height: 1.5;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Noise Meter</h1>
+
+  <div id="volumeMeter" aria-label="Sound level meter">
+    <div id="volumeLevel"></div>
+  </div>
+
+  <div id="decibelValue">-- dB</div>
+
+  <button id="startBtn">Start Monitoring</button>
+  <button id="stopBtn" disabled>Stop Monitoring</button>
+
+  <div id="statusMessage"></div>
+
+  <div class="about-section">
+    <h2>About this Noise Meter</h2>
+    <p>
+      This noise meter captures microphone input and visualizes the sound level in decibels in real-time. It helps you monitor ambient noise for audio testing, room acoustics, or general awareness of sound levels around you.
+    </p>
+    <p>
+      Features:
+      <ul>
+        <li>Accurate real-time sound level measurement from your microphone.</li>
+        <li>Visual volume meter bar with dynamic color gradient.</li>
+        <li>Numerical decibel readout for precise monitoring.</li>
+        <li>Client-side processing with full privacy; no data leaves your browser.</li>
+        <li>Styled for clarity and ease of use, with accessible controls.</li>
+      </ul>
+    </p>
+  </div>
+
+  <script>
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const volumeLevel = document.getElementById('volumeLevel');
+    const decibelValue = document.getElementById('decibelValue');
+    const statusMessage = document.getElementById('statusMessage');
+
+    let audioContext;
+    let analyser;
+    let microphoneStream;
+    let animationId;
+
+    function calculateDecibels(timeDomainData) {
+      // Calculate root mean square (RMS) of the audio sample
+      let sumSquares = 0;
+      for (let i = 0; i < timeDomainData.length; i++) {
+        const normalized = (timeDomainData[i] - 128) / 128; // normalize to [-1, 1]
+        sumSquares += normalized * normalized;
+      }
+      const rms = Math.sqrt(sumSquares / timeDomainData.length);
+
+      // Convert to decibels - Using 20 * log10(rms)
+      // Clamp minimum to -100 dB for too low values
+      const decibels = 20 * Math.log10(rms);
+      return decibels > -100 ? decibels : -100;
+    }
+
+    function updateMeter() {
+      if (!analyser) return;
+
+      const bufferLength = analyser.fftSize;
+      const dataArray = new Uint8Array(bufferLength);
+      analyser.getByteTimeDomainData(dataArray);
+
+      const decibels = calculateDecibels(dataArray);
+
+      // Map decibels (-100 to 0) to volume percentage (0% to 100%)
+      // Rough approximation for visualization
+      const minDb = -100;
+      const maxDb = -30; // noise floor above which volume bar maxes out for usability
+      let percent = ((decibels - minDb) / (maxDb - minDb)) * 100;
+      percent = Math.min(Math.max(percent, 0), 100);
+
+      volumeLevel.style.width = percent + '%';
+
+      // Color gradient changes: green(low), yellow(med), red(high)
+      if (percent < 50) {
+        volumeLevel.style.background = 'linear-gradient(90deg, #27ae60, #2ecc71)'; // green
+      } else if (percent < 80) {
+        volumeLevel.style.background = 'linear-gradient(90deg, #f1c40f, #f39c12)'; // yellow-orange
+      } else {
+        volumeLevel.style.background = 'linear-gradient(90deg, #e74c3c, #c0392b)'; // red
+      }
+
+      // Display decibel value with one decimal place, clamped
+      const displayDb = Math.max(decibels, minDb).toFixed(1);
+      decibelValue.textContent = `${displayDb} dB`;
+
+      animationId = requestAnimationFrame(updateMeter);
+    }
+
+    async function startMonitoring() {
+      statusMessage.textContent = 'Requesting microphone access...';
+      startBtn.disabled = true;
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        microphoneStream = audioContext.createMediaStreamSource(stream);
+
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 512; // Smaller fftSize for faster updates and smoother visuals
+        microphoneStream.connect(analyser);
+
+        updateMeter();
+
+        stopBtn.disabled = false;
+        statusMessage.textContent = 'Monitoring...';
+      } catch (err) {
+        statusMessage.textContent = '';
+        alert('Microphone access denied or not available: ' + err.message);
+        startBtn.disabled = false;
+      }
+    }
+
+    function stopMonitoring() {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+      if (microphoneStream) {
+        try {
+          microphoneStream.mediaStream.getTracks().forEach(track => track.stop());
+        } catch {}
+      }
+      if (audioContext) {
+        audioContext.close();
+      }
+
+      volumeLevel.style.width = '0%';
+      decibelValue.textContent = '-- dB';
+      statusMessage.textContent = 'Monitoring stopped.';
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    }
+
+    startBtn.addEventListener('click', startMonitoring);
+    stopBtn.addEventListener('click', stopMonitoring);
+  </script>
+
+</body>
+</html>

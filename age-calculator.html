@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Age Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7f8;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .calculator {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+    input[type="date"] {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 1em;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #2980b9;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      font-size: 1em;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #3498db;
+    }
+    .result {
+      margin-top: 20px;
+      background: #ecf0f1;
+      padding: 15px;
+      border-radius: 4px;
+      font-size: 1.2em;
+      text-align: center;
+      min-height: 40px;
+    }
+    .about-section {
+      margin-top: 30px;
+      background: #fff3cd;
+      border-left: 5px solid #ffeeba;
+      padding: 15px 20px;
+      border-radius: 4px;
+      color: #856404;
+      font-size: 1em;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <h1>Age Calculator</h1>
+  <div class="calculator">
+    <label for="dob">Date of Birth:</label>
+    <input type="date" id="dob" max="" />
+
+    <button onclick="calculateAge()">Calculate Age</button>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <div class="about-section">
+    <h2>About this Calculator</h2>
+    <p>
+      This age calculator is a simple and effective tool that helps you determine your exact age in years, months, and days based on your date of birth. It allows you to easily track your age for personal records, planning, or celebrations. The calculator automatically considers leap years and varying month lengths for accurate results.
+    </p>
+  </div>
+
+  <script>
+    // Set max date to today for the date input
+    document.getElementById('dob').max = new Date().toISOString().split('T')[0];
+
+    function calculateAge() {
+      const dobInput = document.getElementById('dob').value;
+      const resultDiv = document.getElementById('result');
+
+      if (!dobInput) {
+        resultDiv.textContent = "Please enter your date of birth.";
+        return;
+      }
+
+      const dob = new Date(dobInput);
+      const today = new Date();
+
+      if (dob > today) {
+        resultDiv.textContent = "Date of birth cannot be in the future.";
+        return;
+      }
+
+      let years = today.getFullYear() - dob.getFullYear();
+      let months = today.getMonth() - dob.getMonth();
+      let days = today.getDate() - dob.getDate();
+
+      if (days < 0) {
+        months--;
+        const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+        days += prevMonth.getDate();
+      }
+      if (months < 0) {
+        years--;
+        months += 12;
+      }
+
+      resultDiv.textContent = `You are ${years} years, ${months} months, and ${days} days old.`;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Screen Recorder</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7f8;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+      color: #333;
+      text-align: center;
+    }
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    video {
+      width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      margin-top: 15px;
+    }
+    button {
+      font-size: 1rem;
+      padding: 10px;
+      margin: 0.5rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: #2980b9;
+      color: white;
+      width: 140px;
+      transition: background-color 0.3s ease;
+    }
+    button:hover:not(:disabled) {
+      background-color: #3498db;
+    }
+    button:disabled {
+      background-color: #95a5a6;
+      cursor: not-allowed;
+    }
+    #downloadLink {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #27ae60;
+      color: white;
+      font-weight: bold;
+      border-radius: 4px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #downloadLink:hover {
+      background-color: #2ecc71;
+    }
+    #statusMessage {
+      margin-top: 10px;
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: #e67e22; /* orange */
+      min-height: 1.4em; /* reserve space */
+      user-select: none;
+      font-family: monospace;
+    }
+    #statusMessage .dot {
+      color: #e74c3c; /* red dot */
+      font-weight: bolder;
+      margin-right: 6px;
+      font-size: 1.3em;
+      vertical-align: middle;
+    }
+    .about-section {
+      margin-top: 30px;
+      background: #fff3cd;
+      border-left: 5px solid #ffeeba;
+      padding: 15px 20px;
+      border-radius: 4px;
+      color: #856404;
+      font-size: 1em;
+      line-height: 1.5;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Screen Recorder</h1>
+
+  <!-- Video element to show live screen preview -->
+  <video id="preview" autoplay muted></video>
+
+  <!-- Buttons to control recording -->
+  <div>
+    <button id="startBtn">Start Recording</button>
+    <button id="stopBtn" disabled>Stop Recording</button>
+  </div>
+
+  <div id="statusMessage"></div>
+
+  <!-- Video element to play recorded video -->
+  <video id="recordedVideo" controls style="display: none; margin-top: 15px;"></video>
+
+  <!-- Download link for the recorded video -->
+  <a id="downloadLink" style="display: none;" download="screen-recording.webm">Download Recorded Video</a>
+
+  <div class="about-section">
+    <h2>About this Recorder</h2>
+    <p>
+      This screen recorder lets you capture your entire screen, a window, or a browser tab—including system audio if available—all in your browser without installing software.
+    </p>
+    <p>
+      Features include:
+      <ul>
+        <li><strong>Live Preview:</strong> See your screen as it is recorded.</li>
+        <li><strong>Recording Controls:</strong> Start and stop recording with ease.</li>
+        <li><strong>Playback & Download:</strong> Review the recorded screen capture and save it as a WebM file.</li>
+        <li><strong>Privacy:</strong> All recording is processed locally in your browser.</li>
+        <li><strong>Browser-based:</strong> Works on modern browsers that support the Screen Capture API.</li>
+      </ul>
+    </p>
+    <p>
+      Ideal for creating tutorials, demos, presentations, or saving anything happening on your screen quickly.
+    </p>
+  </div>
+
+  <script>
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const preview = document.getElementById('preview');
+    const recordedVideo = document.getElementById('recordedVideo');
+    const downloadLink = document.getElementById('downloadLink');
+    const statusMessage = document.getElementById('statusMessage');
+
+    let mediaRecorder;
+    let recordedChunks = [];
+    let stream;
+
+    startBtn.addEventListener('click', async () => {
+      statusMessage.innerHTML = '<span class="dot">●</span>Preparing to record...';
+
+      startBtn.disabled = true;
+      stopBtn.disabled = true;
+      recordedVideo.style.display = 'none';
+      downloadLink.style.display = 'none';
+      preview.srcObject = null;
+      recordedChunks = [];
+
+      try {
+        // Request screen capture with audio if available
+        stream = await navigator.mediaDevices.getDisplayMedia({
+          video: { cursor: "motion" },
+          audio: true
+        });
+
+        preview.srcObject = stream;
+
+        mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp8,opus' });
+
+        mediaRecorder.ondataavailable = event => {
+          if (event.data.size > 0) recordedChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(recordedChunks, { type: 'video/webm' });
+          const videoURL = URL.createObjectURL(blob);
+
+          recordedVideo.src = videoURL;
+          recordedVideo.style.display = 'block';
+
+          downloadLink.href = videoURL;
+          downloadLink.style.display = 'inline-block';
+
+          // Stop all tracks after recording stopped
+          stream.getTracks().forEach(track => track.stop());
+          preview.srcObject = null;
+
+          statusMessage.textContent = ''; // clear status
+        };
+
+        mediaRecorder.start();
+
+        stopBtn.disabled = false;
+        statusMessage.innerHTML = '<span class="dot">●</span>Recording...';
+
+      } catch(err) {
+        statusMessage.textContent = '';
+        alert('Failed to start screen capture: ' + err.message);
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+      }
+    });
+
+    stopBtn.addEventListener('click', () => {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        statusMessage.textContent = 'Stopping recording...';
+      }
+    });
+  </script>
+</body>
+</html>

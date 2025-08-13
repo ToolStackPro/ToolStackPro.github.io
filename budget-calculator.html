@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Budget Calculator - ToolStack</title>
+  <style>
+    /* Reset */
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      padding: 20px;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    h1 {
+      text-align: center;
+      color: #2f80ed;
+      font-size: 3rem;
+      letter-spacing: 2px;
+      font-weight: 900;
+      margin-bottom: 40px;
+      user-select: none;
+    }
+    form {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(47, 128, 237, 0.15);
+      padding: 30px 40px;
+      margin-bottom: 40px;
+    }
+    fieldset {
+      border: none;
+      margin-bottom: 40px;
+    }
+    legend {
+      font-size: 2.2rem;
+      font-weight: 900;
+      color: #2f80ed;
+      margin-bottom: 25px;
+      border-bottom: 2px solid #2f80ed;
+      padding-bottom: 6px;
+      user-select: none;
+    }
+    .input-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    label {
+      flex: 1 1 240px;
+      font-weight: 700;
+      color: #34495e;
+      user-select: text;
+      min-width: 180px;
+    }
+    input[type="number"] {
+      flex: 1 1 160px;
+      padding: 10px 14px;
+      border: 2px solid #d1dbe8;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      color: #34495e;
+      transition: border-color 0.3s ease;
+      min-width: 140px;
+    }
+    input[type="number"]::placeholder {
+      color: #a3b1c2;
+      font-style: italic;
+    }
+    input[type="number"]:focus {
+      border-color: #2f80ed;
+      outline: none;
+      box-shadow: 0 0 10px #a8c4f8;
+    }
+    select.period-select {
+      flex: 1 1 100px;
+      padding: 10px 14px;
+      font-size: 1.05rem;
+      border: 2px solid #d1dbe8;
+      border-radius: 8px;
+      color: #34495e;
+      background: white;
+      cursor: pointer;
+      min-width: 90px;
+      transition: border-color 0.3s ease;
+    }
+    select.period-select:focus {
+      border-color: #2f80ed;
+      outline: none;
+      box-shadow: 0 0 10px #a8c4f8;
+    }
+    small.description {
+      display: block;
+      margin-left: 180px;
+      color: #7f8c8d;
+      font-size: 0.9rem;
+      font-style: italic;
+      margin-top: -12px;
+      margin-bottom: 18px;
+      user-select: none;
+    }
+    button {
+      display: block;
+      width: 100%;
+      background: #2f80ed;
+      color: white;
+      border: none;
+      padding: 18px 0;
+      font-size: 1.5rem;
+      font-weight: 900;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      user-select: none;
+      letter-spacing: 1.5px;
+      box-shadow: 0 6px 15px rgba(47, 128, 237, 0.3);
+    }
+    button:hover,
+    button:focus {
+      background: #1a4abe;
+      outline: none;
+    }
+    .result {
+      background: #ecf0f1;
+      border-radius: 12px;
+      padding: 30px 40px;
+      font-size: 1.3rem;
+      line-height: 1.6;
+      color: #2c3e50;
+      box-shadow: inset 0 0 15px #c3d2f5;
+      white-space: pre-wrap;
+      user-select: text;
+      min-height: 220px;
+      margin-bottom: 40px;
+      font-weight: 700;
+    }
+    .about-section {
+      background: #fff3cd;
+      border-left: 7px solid #ffeeba;
+      padding: 25px 35px;
+      border-radius: 12px;
+      color: #856404;
+      font-size: 1.15rem;
+      line-height: 1.6;
+      max-width: 900px;
+      user-select: text;
+      box-shadow: 0 0 12px #f1e2a6;
+    }
+    /* Responsive */
+    @media (max-width: 720px) {
+      .input-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      label, input[type="number"], select.period-select {
+        min-width: 100%;
+        flex: none;
+      }
+      small.description {
+        margin-left: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Budget Calculator</h1>
+
+  <form id="budgetForm" aria-label="Budget Calculator">
+
+    <fieldset>
+      <legend>Incomes (Before Tax)</legend>
+
+      <div class="input-row">
+        <label for="incomeSalary">Salary &amp; Earned Income</label>
+        <input type="number" id="incomeSalary" name="incomeSalary" min="0" step="0.01" placeholder="Amount" aria-describedby="descSalary" />
+        <select class="period-select" id="incomeSalaryPeriod" aria-label="Frequency for Salary & Earned Income">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+      <small id="descSalary" class="description">Enter your salary or wages before tax.</small>
+
+      <div class="input-row">
+        <label for="incomePension">Pension &amp; Social Security</label>
+        <input type="number" id="incomePension" name="incomePension" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="incomePensionPeriod" aria-label="Frequency for Pension & Social Security">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="incomeInvestments">Investments &amp; Savings</label>
+        <input type="number" id="incomeInvestments" name="incomeInvestments" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="incomeInvestmentsPeriod" aria-label="Frequency for Investments & Savings">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="incomeOther">Other Income</label>
+        <input type="number" id="incomeOther" name="incomeOther" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="incomeOtherPeriod" aria-label="Frequency for Other Income">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="incomeTaxRate">Income Tax Rate (%)</label>
+        <input type="number" id="incomeTaxRate" name="incomeTaxRate" min="0" max="100" step="0.1" placeholder="Example: 25" aria-describedby="descTax" />
+        <!-- No period select needed for tax rate -->
+      </div>
+      <small id="descTax" class="description">Combined federal, state, and local tax rate.</small>
+    </fieldset>
+
+    <fieldset>
+      <legend>Housing &amp; Utilities</legend>
+
+      <div class="input-row">
+        <label for="expenseMortgage">Mortgage</label>
+        <input type="number" id="expenseMortgage" name="expenseMortgage" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseMortgagePeriod" aria-label="Frequency for Mortgage">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expensePropertyTax">Property Tax</label>
+        <input type="number" id="expensePropertyTax" name="expensePropertyTax" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expensePropertyTaxPeriod" aria-label="Frequency for Property Tax">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseRental">Rental</label>
+        <input type="number" id="expenseRental" name="expenseRental" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseRentalPeriod" aria-label="Frequency for Rental">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseInsurance">Insurance</label>
+        <input type="number" id="expenseInsurance" name="expenseInsurance" min="0" step="0.01" placeholder="Homeowner, Renters, etc." />
+        <select class="period-select" id="expenseInsurancePeriod" aria-label="Frequency for Insurance">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseHOA">HOA / Co-Op Fee</label>
+        <input type="number" id="expenseHOA" name="expenseHOA" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseHOAPeriod" aria-label="Frequency for HOA/Co-Op Fee">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseHomeMaintenance">Home Maintenance</label>
+        <input type="number" id="expenseHomeMaintenance" name="expenseHomeMaintenance" min="0" step="0.01" placeholder="Repairs, landscaping, furniture..." />
+        <select class="period-select" id="expenseHomeMaintenancePeriod" aria-label="Frequency for Home Maintenance">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseUtilities">Utilities</label>
+        <input type="number" id="expenseUtilities" name="expenseUtilities" min="0" step="0.01" placeholder="Electricity, gas, water..." />
+        <select class="period-select" id="expenseUtilitiesPeriod" aria-label="Frequency for Utilities">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Transportation</legend>
+      
+      <div class="input-row">
+        <label for="expenseAutoLoan">Auto Loan</label>
+        <input type="number" id="expenseAutoLoan" name="expenseAutoLoan" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseAutoLoanPeriod" aria-label="Frequency for Auto Loan">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseAutoInsurance">Auto Insurance</label>
+        <input type="number" id="expenseAutoInsurance" name="expenseAutoInsurance" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseAutoInsurancePeriod" aria-label="Frequency for Auto Insurance">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseGasoline">Gasoline</label>
+        <input type="number" id="expenseGasoline" name="expenseGasoline" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseGasolinePeriod" aria-label="Frequency for Gasoline">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseAutoMaintenance">Auto Maintenance</label>
+        <input type="number" id="expenseAutoMaintenance" name="expenseAutoMaintenance" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseAutoMaintenancePeriod" aria-label="Frequency for Auto Maintenance">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseParkingTolls">Parking / Tolls</label>
+        <input type="number" id="expenseParkingTolls" name="expenseParkingTolls" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseParkingTollsPeriod" aria-label="Frequency for Parking and Tolls">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseOtherTransport">Other Transportation</label>
+        <input type="number" id="expenseOtherTransport" name="expenseOtherTransport" min="0" step="0.01" placeholder="Tickets, taxi, registration..." />
+        <select class="period-select" id="expenseOtherTransportPeriod" aria-label="Frequency for Other Transportation">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Other Debt &amp; Loan Payments</legend>
+
+      <div class="input-row">
+        <label for="expenseCreditCard">Credit Card</label>
+        <input type="number" id="expenseCreditCard" name="expenseCreditCard" min="0" step="0.01" placeholder="Recurring payment only" />
+        <select class="period-select" id="expenseCreditCardPeriod" aria-label="Frequency for Credit Card Payment">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseStudentLoan">Student Loan</label>
+        <input type="number" id="expenseStudentLoan" name="expenseStudentLoan" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseStudentLoanPeriod" aria-label="Frequency for Student Loan">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseOtherLoans">Other Loans</label>
+        <input type="number" id="expenseOtherLoans" name="expenseOtherLoans" min="0" step="0.01" placeholder="Personal loans, store cards" />
+        <select class="period-select" id="expenseOtherLoansPeriod" aria-label="Frequency for Other Loans">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Living Expenses</legend>
+
+      <div class="input-row">
+        <label for="expenseFood">Food</label>
+        <input type="number" id="expenseFood" name="expenseFood" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseFoodPeriod" aria-label="Frequency for Food">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseClothing">Clothing</label>
+        <input type="number" id="expenseClothing" name="expenseClothing" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseClothingPeriod" aria-label="Frequency for Clothing">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseHouseholdSupplies">Household Supplies</label>
+        <input type="number" id="expenseHouseholdSupplies" name="expenseHouseholdSupplies" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseHouseholdSuppliesPeriod" aria-label="Frequency for Household Supplies">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseMealsOut">Meals Out</label>
+        <input type="number" id="expenseMealsOut" name="expenseMealsOut" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseMealsOutPeriod" aria-label="Frequency for Meals Out">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseOtherLiving">Other Living Expenses</label>
+        <input type="number" id="expenseOtherLiving" name="expenseOtherLiving" min="0" step="0.01" placeholder="Laundry, beauty, alcohol, etc." />
+        <select class="period-select" id="expenseOtherLivingPeriod" aria-label="Frequency for Other Living Expenses">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Healthcare</legend>
+      <div class="input-row">
+        <label for="expenseMedicalInsurance">Medical Insurance</label>
+        <input type="number" id="expenseMedicalInsurance" name="expenseMedicalInsurance" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseMedicalInsurancePeriod" aria-label="Frequency for Medical Insurance">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseMedicalSpending">Medical Spending</label>
+        <input type="number" id="expenseMedicalSpending" name="expenseMedicalSpending" min="0" step="0.01" placeholder="Copay, uncovered visits, meds" />
+        <select class="period-select" id="expenseMedicalSpendingPeriod" aria-label="Frequency for Medical Spending">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Children &amp; Education</legend>
+      <div class="input-row">
+        <label for="expenseChildCare">Child & Personal Care</label>
+        <input type="number" id="expenseChildCare" name="expenseChildCare" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseChildCarePeriod" aria-label="Frequency for Child and Personal Care">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseTuition">Tuition & Supplies</label>
+        <input type="number" id="expenseTuition" name="expenseTuition" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseTuitionPeriod" aria-label="Frequency for Tuition and Supplies">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseChildSupport">Child Support Payments</label>
+        <input type="number" id="expenseChildSupport" name="expenseChildSupport" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseChildSupportPeriod" aria-label="Frequency for Child Support Payments">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseOtherChild">Other Children Spending</label>
+        <input type="number" id="expenseOtherChild" name="expenseOtherChild" min="0" step="0.01" placeholder="Books, software, devices" />
+        <select class="period-select" id="expenseOtherChildPeriod" aria-label="Frequency for Other Children Spending">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Savings &amp; Investments</legend>
+      <div class="input-row">
+        <label for="expenseRetirement">401k & IRA Contributions</label>
+        <input type="number" id="expenseRetirement" name="expenseRetirement" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseRetirementPeriod" aria-label="Frequency for 401k and IRA Contributions">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseCollegeSaving">College Saving</label>
+        <input type="number" id="expenseCollegeSaving" name="expenseCollegeSaving" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseCollegeSavingPeriod" aria-label="Frequency for College Saving">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseInvestments">Investments</label>
+        <input type="number" id="expenseInvestments" name="expenseInvestments" min="0" step="0.01" placeholder="Stocks, bonds, real estate..." />
+        <select class="period-select" id="expenseInvestmentsPeriod" aria-label="Frequency for Investments">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseEmergencyFund">Emergency Fund & Other Savings</label>
+        <input type="number" id="expenseEmergencyFund" name="expenseEmergencyFund" min="0" step="0.01" placeholder="Savings, CDs, major purchases..." />
+        <select class="period-select" id="expenseEmergencyFundPeriod" aria-label="Frequency for Emergency Fund and Other Savings">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Miscellaneous Expenses</legend>
+      <div class="input-row">
+        <label for="expensePet">Pet</label>
+        <input type="number" id="expensePet" name="expensePet" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expensePetPeriod" aria-label="Frequency for Pet expenses">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseGifts">Gifts & Donations</label>
+        <input type="number" id="expenseGifts" name="expenseGifts" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseGiftsPeriod" aria-label="Frequency for Gifts and Donations">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseHobbies">Hobbies & Sports</label>
+        <input type="number" id="expenseHobbies" name="expenseHobbies" min="0" step="0.01" placeholder="Gym, tickets, memberships..." />
+        <select class="period-select" id="expenseHobbiesPeriod" aria-label="Frequency for Hobbies and Sports">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseEntertainment">Entertainment & Tickets</label>
+        <input type="number" id="expenseEntertainment" name="expenseEntertainment" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseEntertainmentPeriod" aria-label="Frequency for Entertainment and Tickets">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseTravel">Travel & Vacation</label>
+        <input type="number" id="expenseTravel" name="expenseTravel" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseTravelPeriod" aria-label="Frequency for Travel and Vacation">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+
+      <div class="input-row">
+        <label for="expenseOtherMisc">Other Expenses</label>
+        <input type="number" id="expenseOtherMisc" name="expenseOtherMisc" min="0" step="0.01" placeholder="Amount" />
+        <select class="period-select" id="expenseOtherMiscPeriod" aria-label="Frequency for Other Expenses">
+          <option value="month" selected>Monthly</option>
+          <option value="year">Yearly</option>
+        </select>
+      </div>
+    </fieldset>
+
+    <button type="button" id="calculateBtn">Calculate Budget Summary</button>
+  </form>
+
+  <div class="result" id="result" aria-live="polite" aria-atomic="true" aria-label="Budget calculation results"></div>
+
+  <div class="about-section" tabindex="0" aria-label="About this budget calculator">
+    <h2>About this Calculator</h2>
+    <p>
+      The ToolStack Budget Calculator helps you estimate your personal finances by allowing you to input monthly or yearly amounts for various income and expense categories.
+      Each input has a selector to specify if the amount is monthly or yearly, and yearly amounts are automatically converted to monthly values for consistency.
+      After entering your financial data, the calculator will provide you with a detailed summary including total income, total expenses by category, net income, and your expense-to-income ratio.
+      Use this tool to better understand your financial situation, control spending, and plan your saving goals.
+    </p>
+  </div>
+
+  <script>
+    // Helper: get float from input, default 0
+    function getVal(id) {
+      const val = parseFloat(document.getElementById(id).value);
+      return isNaN(val) ? 0 : val;
+    }
+    // Convert to monthly if yearly is selected
+    function convertToMonthly(value, period) {
+      if (period === 'year') {
+        return value / 12;
+      }
+      return value;
+    }
+    // List of all income/expense input IDs and their corresponding period selector IDs
+    const entries = [
+      // Incomes
+      ['incomeSalary', 'incomeSalaryPeriod'],
+      ['incomePension', 'incomePensionPeriod'],
+      ['incomeInvestments', 'incomeInvestmentsPeriod'],
+      ['incomeOther', 'incomeOtherPeriod'],
+      ['incomeTaxRate', null], // tax rate has no period selector
+
+      // Housing & Utilities
+      ['expenseMortgage', 'expenseMortgagePeriod'],
+      ['expensePropertyTax', 'expensePropertyTaxPeriod'],
+      ['expenseRental', 'expenseRentalPeriod'],
+      ['expenseInsurance', 'expenseInsurancePeriod'],
+      ['expenseHOA', 'expenseHOAPeriod'],
+      ['expenseHomeMaintenance', 'expenseHomeMaintenancePeriod'],
+      ['expenseUtilities', 'expenseUtilitiesPeriod'],
+
+      // Transportation
+      ['expenseAutoLoan', 'expenseAutoLoanPeriod'],
+      ['expenseAutoInsurance', 'expenseAutoInsurancePeriod'],
+      ['expenseGasoline', 'expenseGasolinePeriod'],
+      ['expenseAutoMaintenance', 'expenseAutoMaintenancePeriod'],
+      ['expenseParkingTolls', 'expenseParkingTollsPeriod'],
+      ['expenseOtherTransport', 'expenseOtherTransportPeriod'],
+
+      // Other Debt & Loan Payments
+      ['expenseCreditCard', 'expenseCreditCardPeriod'],
+      ['expenseStudentLoan', 'expenseStudentLoanPeriod'],
+      ['expenseOtherLoans', 'expenseOtherLoansPeriod'],
+
+      // Living Expenses
+      ['expenseFood', 'expenseFoodPeriod'],
+      ['expenseClothing', 'expenseClothingPeriod'],
+      ['expenseHouseholdSupplies', 'expenseHouseholdSuppliesPeriod'],
+      ['expenseMealsOut', 'expenseMealsOutPeriod'],
+      ['expenseOtherLiving', 'expenseOtherLivingPeriod'],
+
+      // Healthcare
+      ['expenseMedicalInsurance', 'expenseMedicalInsurancePeriod'],
+      ['expenseMedicalSpending', 'expenseMedicalSpendingPeriod'],
+
+      // Children & Education
+      ['expenseChildCare', 'expenseChildCarePeriod'],
+      ['expenseTuition', 'expenseTuitionPeriod'],
+      ['expenseChildSupport', 'expenseChildSupportPeriod'],
+      ['expenseOtherChild', 'expenseOtherChildPeriod'],
+
+      // Savings & Investments
+      ['expenseRetirement', 'expenseRetirementPeriod'],
+      ['expenseCollegeSaving', 'expenseCollegeSavingPeriod'],
+      ['expenseInvestments', 'expenseInvestmentsPeriod'],
+      ['expenseEmergencyFund', 'expenseEmergencyFundPeriod'],
+
+      // Miscellaneous
+      ['expensePet', 'expensePetPeriod'],
+      ['expenseGifts', 'expenseGiftsPeriod'],
+      ['expenseHobbies', 'expenseHobbiesPeriod'],
+      ['expenseEntertainment', 'expenseEntertainmentPeriod'],
+      ['expenseTravel', 'expenseTravelPeriod'],
+      ['expenseOtherMisc', 'expenseOtherMiscPeriod']
+    ];
+
+    document.getElementById('calculateBtn').addEventListener('click', () => {
+      // Gather and convert income and expense values
+      let totalIncomeRaw = 0;
+      let totalIncomeNet = 0;
+      let totalExpenses = 0;
+
+      // Income tax rate handling separately
+      const incomeTaxRate = getVal('incomeTaxRate');
+
+      // Separate sums for detailed reporting
+      const sums = {
+        income: {
+          salary: 0,
+          pension: 0,
+          investments: 0,
+          other: 0,
+          total: 0 // before tax
+        },
+        housing: 0,
+        transportation: 0,
+        debt: 0,
+        living: 0,
+        healthcare: 0,
+        children: 0,
+        savings: 0,
+        misc: 0
+      };
+
+      // Function to add amounts by category, by ID prefixes
+      function addAmount(id, value) {
+        if (id.startsWith('incomeSalary')) sums.income.salary += value;
+        else if (id.startsWith('incomePension')) sums.income.pension += value;
+        else if (id.startsWith('incomeInvestments')) sums.income.investments += value;
+        else if (id.startsWith('incomeOther')) sums.income.other += value;
+
+        else if (id.startsWith('expenseMortgage') ||
+                 id.startsWith('expensePropertyTax') ||
+                 id.startsWith('expenseRental') ||
+                 id.startsWith('expenseInsurance') ||
+                 id.startsWith('expenseHOA') ||
+                 id.startsWith('expenseHomeMaintenance') ||
+                 id.startsWith('expenseUtilities')) sums.housing += value;
+
+        else if (id.startsWith('expenseAutoLoan') ||
+                 id.startsWith('expenseAutoInsurance') ||
+                 id.startsWith('expenseGasoline') ||
+                 id.startsWith('expenseAutoMaintenance') ||
+                 id.startsWith('expenseParkingTolls') ||
+                 id.startsWith('expenseOtherTransport')) sums.transportation += value;
+
+        else if (id.startsWith('expenseCreditCard') ||
+                 id.startsWith('expenseStudentLoan') ||
+                 id.startsWith('expenseOtherLoans')) sums.debt += value;
+
+        else if (id.startsWith('expenseFood') ||
+                 id.startsWith('expenseClothing') ||
+                 id.startsWith('expenseHouseholdSupplies') ||
+                 id.startsWith('expenseMealsOut') ||
+                 id.startsWith('expenseOtherLiving')) sums.living += value;
+
+        else if (id.startsWith('expenseMedicalInsurance') ||
+                 id.startsWith('expenseMedicalSpending')) sums.healthcare += value;
+
+        else if (id.startsWith('expenseChildCare') ||
+                 id.startsWith('expenseTuition') ||
+                 id.startsWith('expenseChildSupport') ||
+                 id.startsWith('expenseOtherChild')) sums.children += value;
+
+        else if (id.startsWith('expenseRetirement') ||
+                 id.startsWith('expenseCollegeSaving') ||
+                 id.startsWith('expenseInvestments') ||
+                 id.startsWith('expenseEmergencyFund')) sums.savings += value;
+
+        else if (id.startsWith('expensePet') ||
+                 id.startsWith('expenseGifts') ||
+                 id.startsWith('expenseHobbies') ||
+                 id.startsWith('expenseEntertainment') ||
+                 id.startsWith('expenseTravel') ||
+                 id.startsWith('expenseOtherMisc')) sums.misc += value;
+      }
+
+      // Loop over entries, get values and periods, convert to monthly
+      entries.forEach(([id, periodId]) => {
+        // Skip tax rate - no amount calculation here
+        if (id === 'incomeTaxRate') return;
+
+        const rawVal = getVal(id);
+        let period = 'month';
+        if (periodId) {
+          period = document.getElementById(periodId).value;
+        }
+        const monthlyVal = convertToMonthly(rawVal, period);
+        totalExpenses += monthlyVal; // will subtract incomes later, we add income separately
+        if (id.startsWith('income')) totalIncomeRaw += monthlyVal;
+
+        addAmount(id, monthlyVal);
+      });
+
+      // Apply tax rate on total income
+      if (incomeTaxRate > 0 && incomeTaxRate <= 100) {
+        totalIncomeNet = totalIncomeRaw * (1 - incomeTaxRate / 100);
+      } else {
+        totalIncomeNet = totalIncomeRaw;
+      }
+
+      // Calculate net income (after expenses)
+      const netIncome = totalIncomeNet - totalExpenses;
+
+      // Compute expense-to-income ratio
+      const expenseIncomeRatio = totalIncomeNet > 0 ? (totalExpenses / totalIncomeNet) * 100 : 0;
+
+      // Build output string
+      let output = "=== Monthly Budget Summary ===\n\n";
+      output += `Total Income (before tax): $${totalIncomeRaw.toFixed(2)}\n`;
+      if (incomeTaxRate > 0 && incomeTaxRate <= 100) {
+        output += `Income Tax Rate: ${incomeTaxRate.toFixed(1)}%\n`;
+        output += `Total Income (after tax): $${totalIncomeNet.toFixed(2)}\n`;
+      }
+      output += "\n--- Expenses Breakdown ---\n";
+      output += `Housing & Utilities: $${sums.housing.toFixed(2)}\n`;
+      output += `Transportation: $${sums.transportation.toFixed(2)}\n`;
+      output += `Debt & Loan Payments: $${sums.debt.toFixed(2)}\n`;
+      output += `Living Expenses: $${sums.living.toFixed(2)}\n`;
+      output += `Healthcare: $${sums.healthcare.toFixed(2)}\n`;
+      output += `Children & Education: $${sums.children.toFixed(2)}\n`;
+      output += `Savings & Investments: $${sums.savings.toFixed(2)}\n`;
+      output += `Miscellaneous Expenses: $${sums.misc.toFixed(2)}\n`;
+      output += `\nTotal Expenses: $${totalExpenses.toFixed(2)}\n`;
+      output += `\nNet Income: $${netIncome.toFixed(2)}\n`;
+      output += `Expense-to-Income Ratio: ${expenseIncomeRatio.toFixed(1)}%\n\n`;
+      if (netIncome < 0) {
+        output += "⚠️ Warning: Your expenses exceed your income. Consider adjusting your budget.";
+      } else if (netIncome === 0) {
+        output += "⚠️ Warning: Your income equals your expenses. You have no savings.";
+      } else {
+        output += "Great! You have positive net income to save or invest.";
+      }
+
+      document.getElementById('result').textContent = output;
+      document.getElementById('result').scrollIntoView({behavior: 'smooth'});
+    });
+  </script>
+
+</body>
+</html>

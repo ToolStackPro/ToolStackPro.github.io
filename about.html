@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ToolStackPro - About</title>
+  <style>
+    /* Reset and base */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f9fafb;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      background: #2f80ed;
+      color: #fff;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 8px rgb(47 128 237 / 0.3);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      user-select: none;
+    }
+
+    nav {
+      display: flex;
+      gap: 25px;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      color: #ffffffcc;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: color 0.25s ease;
+    }
+    nav a:hover, nav a:focus {
+      color: #ffffff;
+      text-decoration: underline;
+      outline: none;
+    }
+    nav a[aria-current="page"] {
+      color: #fff;
+      text-decoration: underline;
+    }
+
+    /* Main content */
+    main {
+      flex-grow: 1;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      color: #2f80ed;
+      letter-spacing: 1.5px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    section.about-content {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgb(0 0 0 / 0.1);
+      padding: 30px 40px;
+      color: #444;
+    }
+
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      color: #2f80ed;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      font-weight: 700;
+    }
+
+    ul.tools-list {
+      list-style-type: none;
+      padding-left: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fill,minmax(220px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    ul.tools-list li {
+      background: #2f80ed;
+      color: #fff;
+      font-weight: 600;
+      padding: 12px 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgb(47 128 237 / 0.5);
+      user-select: text;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    /* Footer */
+    footer {
+      background: #2f80ed;
+      color: #fff;
+      text-align: center;
+      padding: 20px 15px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-top: auto;
+      box-shadow: 0 -2px 8px rgb(47 128 237 / 0.3);
+    }
+
+    footer a {
+      color: #caf0ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    footer a:hover,
+    footer a:focus {
+      text-decoration: underline;
+    }
+
+    /* Accessibility */
+    a:focus-visible,
+    button:focus-visible {
+      outline: 3px solid #2f80ed;
+      outline-offset: 3px;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      header {
+        justify-content: center;
+        gap: 20px;
+      }
+
+      main {
+        margin-top: 20px;
+      }
+
+      section.about-content {
+        padding: 20px;
+      }
+
+      ul.tools-list {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo" tabindex="0">ToolStackPro</div>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="support.html">Support</a>
+      <a href="contact.html">Contact</a>
+      <a href="about.html" aria-current="page">About</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>About ToolStackPro</h1>
+    <section class="about-content" aria-label="About ToolStack and List of Tools">
+      <p>
+        ToolStackPro is your ultimate collection of handy web tools designed to simplify your life and boost your productivity. We continuously curate practical calculators, planners, and utilities to help you accomplish everyday tasks efficiently.
+      </p>
+
+      <h2>Our Mission</h2>
+      <p>
+        Our mission is to provide an intuitive and accessible hub for users to find essential web tools, all in one place, with a consistent user experience and modern design.
+      </p>
+
+      <h2>Available Tools</h2>
+      <ul class="tools-list" aria-label="List of tools available on ToolStack">
+        <li>Age Calculator</li>
+        <li>BMI Calculator</li>
+        <li>BMR Calculator</li>
+        <li>Dice Decision</li>
+        <li>Fake Trip Planner</li>
+        <li>Loan Calculator</li>
+        <li>Magic Number Explorer</li>
+        <li>Pregnancy Calculator</li>
+        <li>What's in My Bag</li>
+        <li>Budget Calculator</li>
+        <li>Voice Recorder</li>
+        <li>Video Recorder</li>
+        <li>Screen Recorder</li>
+        <li>Noise Meter</li>
+        <li>Text to Speech</li>
+        <li>Webcam Filters</li>
+      </ul>
+
+      <p>
+        We strive to keep ToolStackPro fresh by regularly adding new tools and enhancing existing ones. If you have ideas or need support, please visit our Support or Contact pages.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    &copy; 2025 ToolStackPro &nbsp;|&nbsp; 
+    <a href="privacy.html">Privacy Policy</a> &nbsp;|&nbsp; 
+    <a href="terms.html">Terms of Service</a>
+  </footer>
+</body>
+</html>

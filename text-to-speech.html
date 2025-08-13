@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Text-to-Speech</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7f8;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+      color: #333;
+      text-align: center;
+    }
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      resize: vertical;
+      box-sizing: border-box;
+      font-family: inherit;
+      margin-bottom: 15px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 4px;
+      text-align: left;
+      color: #2c3e50;
+    }
+    .slider-value {
+      text-align: left;
+      font-family: monospace;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #2980b9;
+    }
+    button {
+      font-size: 1rem;
+      padding: 10px 15px;
+      margin: 0.3rem 0.4rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: #2980b9;
+      color: white;
+      width: 110px;
+      transition: background-color 0.3s ease;
+    }
+    button:hover:not(:disabled) {
+      background-color: #3498db;
+    }
+    button:disabled {
+      background-color: #95a5a6;
+      cursor: not-allowed;
+    }
+    #statusMessage {
+      margin-top: 10px;
+      font-weight: bold;
+      font-size: 1rem;
+      min-height: 1.4em;
+      user-select: none;
+      font-family: monospace;
+      color: #e67e22; /* orange */
+    }
+    .about-section {
+      margin-top: 30px;
+      background: #fff3cd;
+      border-left: 5px solid #ffeeba;
+      padding: 15px 20px;
+      border-radius: 4px;
+      color: #856404;
+      font-size: 1em;
+      line-height: 1.5;
+      text-align: left;
+      user-select: text;
+    }
+
+    /* Styled select container for custom arrow */
+    .select-container {
+      position: relative;
+      width: 100%;
+      margin-bottom: 15px;
+    }
+
+    /* Styled select */
+    #voiceSelect {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      width: 100%;
+      padding: 10px 40px 10px 15px;
+      font-size: 1rem;
+      font-family: inherit;
+      color: #333;
+      background-color: #fff;
+      border: 1px solid #2980b9; /* blue border */
+      border-radius: 4px;
+      cursor: pointer;
+      box-sizing: border-box;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    #voiceSelect:hover {
+      border-color: #3498db;
+      box-shadow: 0 0 6px rgba(52, 152, 219, 0.6);
+    }
+
+    #voiceSelect:focus {
+      outline: none;
+      border-color: #2980b9;
+      box-shadow: 0 0 8px rgba(41, 128, 185, 0.8);
+    }
+
+    /* Custom downward arrow */
+    .select-container::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: 15px;
+      width: 0;
+      height: 0;
+      pointer-events: none;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid #2980b9; /* blue arrow */
+      transform: translateY(-50%);
+    }
+
+    /* Hide native arrow for IE */
+    #voiceSelect::-ms-expand {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Text-to-Speech</h1>
+
+  <textarea id="textInput" placeholder="Enter text here to be spoken..."></textarea>
+
+  <label for="voiceSelect">Select Voice:</label>
+  <div class="select-container">
+    <select id="voiceSelect" aria-label="Select voice"></select>
+  </div>
+
+  <label for="rateControl">Speech Rate:</label>
+  <input type="range" id="rateControl" min="0.5" max="2" step="0.1" value="1" />
+  <div class="slider-value" id="rateValue">1.0</div>
+
+  <label for="pitchControl">Pitch:</label>
+  <input type="range" id="pitchControl" min="0" max="2" step="0.1" value="1" />
+  <div class="slider-value" id="pitchValue">1.0</div>
+
+  <div>
+    <button id="speakBtn">Speak</button>
+    <button id="pauseBtn" disabled>Pause</button>
+    <button id="resumeBtn" disabled>Resume</button>
+    <button id="stopBtn" disabled>Stop</button>
+  </div>
+
+  <div id="statusMessage" aria-live="polite" role="status"></div>
+
+  <div class="about-section">
+    <h2>About this Text-to-Speech</h2>
+    <p>
+      This Text-to-Speech tool uses the Web Speech API to read aloud text you enter in the browser. You can select from available voices, and adjust speech rate and pitch to customize the speaking style.
+    </p>
+    <p>Features include:</p>
+    <ul>
+      <li>Input area for any text you want read aloud.</li>
+      <li>Voice selection from your system/browser voices.</li>
+      <li>Adjustable speech rate and pitch with live feedback.</li>
+      <li>Controls to Speak, Pause, Resume, and Stop speech.</li>
+      <li>No data leaves your device; all synthesis is done client-side.</li>
+    </ul>
+    <p>This is a lightweight, privacy-friendly, browser-based TTS solution ideal for accessibility, learning, presentations, or fun voice interactions.</p>
+  </div>
+
+  <script>
+    const synth = window.speechSynthesis;
+    const textInput = document.getElementById('textInput');
+    const voiceSelect = document.getElementById('voiceSelect');
+    const rateControl = document.getElementById('rateControl');
+    const pitchControl = document.getElementById('pitchControl');
+    const rateValue = document.getElementById('rateValue');
+    const pitchValue = document.getElementById('pitchValue');
+    const speakBtn = document.getElementById('speakBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const resumeBtn = document.getElementById('resumeBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const statusMessage = document.getElementById('statusMessage');
+
+    let voices = [];
+    let utterance = null;
+
+    function populateVoiceList() {
+      voices = synth.getVoices();
+      voiceSelect.innerHTML = '';
+      voices.forEach((voice, i) => {
+        const option = document.createElement('option');
+        option.textContent = `${voice.name} (${voice.lang})${voice.default ? ' — Default' : ''}`;
+        option.value = i;
+        voiceSelect.appendChild(option);
+      });
+    }
+
+    populateVoiceList();
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+      speechSynthesis.onvoiceschanged = populateVoiceList;
+    }
+
+    rateControl.addEventListener('input', () => {
+      rateValue.textContent = rateControl.value;
+    });
+
+    pitchControl.addEventListener('input', () => {
+      pitchValue.textContent = pitchControl.value;
+    });
+
+    function resetButtons() {
+      pauseBtn.disabled = true;
+      resumeBtn.disabled = true;
+      stopBtn.disabled = true;
+      speakBtn.disabled = false;
+    }
+
+    resetButtons();
+
+    speakBtn.addEventListener('click', () => {
+      if (synth.speaking) {
+        statusMessage.textContent = 'Already speaking...';
+        return;
+      }
+      const text = textInput.value.trim();
+      if (text === '') {
+        alert('Please enter some text to speak.');
+        return;
+      }
+
+      utterance = new SpeechSynthesisUtterance(text);
+      utterance.voice = voices[voiceSelect.value] || null;
+      utterance.rate = parseFloat(rateControl.value);
+      utterance.pitch = parseFloat(pitchControl.value);
+
+      utterance.onstart = () => {
+        statusMessage.textContent = 'Speaking...';
+        speakBtn.disabled = true;
+        pauseBtn.disabled = false;
+        stopBtn.disabled = false;
+        resumeBtn.disabled = true;
+      };
+
+      utterance.onend = () => {
+        statusMessage.textContent = 'Speech finished.';
+        resetButtons();
+      };
+
+      utterance.onerror = (event) => {
+        statusMessage.textContent = 'An error occurred: ' + event.error;
+        resetButtons();
+      };
+
+      synth.speak(utterance);
+    });
+
+    pauseBtn.addEventListener('click', () => {
+      if (synth.speaking && !synth.paused) {
+        synth.pause();
+        statusMessage.textContent = 'Paused.';
+        pauseBtn.disabled = true;
+        resumeBtn.disabled = false;
+      }
+    });
+
+    resumeBtn.addEventListener('click', () => {
+      if (synth.paused) {
+        synth.resume();
+        statusMessage.textContent = 'Speaking...';
+        pauseBtn.disabled = false;
+        resumeBtn.disabled = true;
+      }
+    });
+
+    stopBtn.addEventListener('click', () => {
+      if (synth.speaking) {
+        synth.cancel();
+        statusMessage.textContent = 'Speech stopped.';
+        resetButtons();
+      }
+    });
+
+    // Reset status if user changes text input while speaking
+    textInput.addEventListener('input', () => {
+      if (synth.speaking) {
+        synth.cancel();
+        resetButtons();
+        statusMessage.textContent = '';
+      }
+    });
+  </script>
+
+</body>
+</html>

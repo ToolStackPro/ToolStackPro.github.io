@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Advanced Pregnancy Calculator - ToolStack</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7f8;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #2f80ed;
+      margin-bottom: 20px;
+    }
+    .calculator {
+      background: white;
+      padding: 25px 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+    select, input[type="date"], input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1em;
+      box-sizing: border-box;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #2f80ed;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      font-weight: 600;
+    }
+    button:hover {
+      background: #1c5dc9;
+    }
+    .result {
+      margin-top: 25px;
+      background: #ecf0f1;
+      padding: 20px;
+      border-radius: 6px;
+      font-size: 1.1em;
+      color: #2c3e50;
+      white-space: pre-wrap;
+      min-height: 140px;
+      user-select: text;
+    }
+    .about-section {
+      margin-top: 30px;
+      background: #fff3cd;
+      border-left: 5px solid #ffeeba;
+      padding: 15px 20px;
+      border-radius: 4px;
+      color: #856404;
+      font-size: 1em;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Advanced Pregnancy Calculator</h1>
+
+  <div class="calculator" role="form" aria-label="Pregnancy Calculator Form">
+    <label for="calcBasis">Calculate Based On:</label>
+    <select id="calcBasis" aria-describedby="calcBasisDesc" required>
+      <option value="" disabled selected>Select calculation basis</option>
+      <option value="dueDate">Due Date</option>
+      <option value="lastPeriod">Last Period Date (LMP)</option>
+      <option value="ultrasound">Ultrasound Date & Gestational Age</option>
+      <option value="conception">Conception Date</option>
+      <option value="ivfTransfer">IVF Transfer Date</option>
+    </select>
+    <small id="calcBasisDesc" style="display:block; margin-bottom:20px; color:#666;">
+      Choose the date type you want to provide for pregnancy calculation.
+    </small>
+
+    <div id="inputContainers">
+
+      <!-- Due Date input -->
+      <div class="inputGroup" id="dueDateInput" style="display:none;">
+        <label for="dueDate">Your Due Date:</label>
+        <input type="date" id="dueDate" max="" />
+      </div>
+
+      <!-- Last Period input -->
+      <div class="inputGroup" id="lastPeriodInput" style="display:none;">
+        <label for="lastPeriod">Last Menstrual Period (LMP) Date:</label>
+        <input type="date" id="lastPeriod" max="" />
+      </div>
+
+      <!-- Ultrasound input -->
+      <div class="inputGroup" id="ultrasoundInput" style="display:none;">
+        <label for="usDate">Ultrasound Date:</label>
+        <input type="date" id="usDate" max="" />
+        <label for="usWeeks">Gestational Age at Ultrasound (weeks):</label>
+        <input type="number" id="usWeeks" min="0" max="45" step="0.1" placeholder="e.g., 12.5" />
+      </div>
+
+      <!-- Conception date input -->
+      <div class="inputGroup" id="conceptionInput" style="display:none;">
+        <label for="conceptionDate">Conception Date:</label>
+        <input type="date" id="conceptionDate" max="" />
+      </div>
+
+      <!-- IVF Transfer input -->
+      <div class="inputGroup" id="ivfTransferInput" style="display:none;">
+        <label for="ivfDate">IVF Transfer Date:</label>
+        <input type="date" id="ivfDate" max="" />
+        <label for="ivfDay">Day of embryo transfer:</label>
+        <select id="ivfDay">
+          <option value="3">Day 3</option>
+          <option value="5" selected>Day 5</option>
+          <option value="6">Day 6</option>
+        </select>
+      </div>
+
+    </div>
+
+    <button id="calculateBtn" aria-label="Calculate Pregnancy Dates">Calculate Pregnancy Dates</button>
+
+    <div class="result" id="result" aria-live="polite" role="region" aria-label="Pregnancy calculation results"></div>
+  </div>
+
+  <div class="about-section" tabindex="0">
+    <h2>About this Calculator</h2>
+    <p>
+      This advanced pregnancy calculator estimates key pregnancy dates based on a variety of inputs including due date,
+      last menstrual period, ultrasound dating, conception date, or IVF embryo transfer date.
+      It provides your estimated due date, conception date, current gestational age, and trimester milestones.
+      Use the appropriate input to get a customized and accurate pregnancy schedule.
+    </p>
+  </div>
+
+  <script>
+    // Set max date for all date inputs to today
+    const todayStr = new Date().toISOString().split('T')[0];
+    document.querySelectorAll('input[type="date"]').forEach(input => input.max = todayStr);
+
+    const calcBasisSelect = document.getElementById('calcBasis');
+    const inputContainers = document.querySelectorAll('.inputGroup');
+    const resultDiv = document.getElementById('result');
+
+    // Function to hide all input groups & clear result
+    function hideAllInputs() {
+      inputContainers.forEach(container => container.style.display = 'none');
+      resultDiv.textContent = '';
+    }
+
+    // Show proper input group based on selection
+    calcBasisSelect.addEventListener('change', () => {
+      hideAllInputs();
+      switch(calcBasisSelect.value) {
+        case 'dueDate':
+          document.getElementById('dueDateInput').style.display = 'block';
+          break;
+        case 'lastPeriod':
+          document.getElementById('lastPeriodInput').style.display = 'block';
+          break;
+        case 'ultrasound':
+          document.getElementById('ultrasoundInput').style.display = 'block';
+          break;
+        case 'conception':
+          document.getElementById('conceptionInput').style.display = 'block';
+          break;
+        case 'ivfTransfer':
+          document.getElementById('ivfTransferInput').style.display = 'block';
+          break;
+      }
+    });
+
+    // Helper date functions:
+    function addDays(date, days) {
+      const d = new Date(date);
+      d.setDate(d.getDate() + days);
+      return d;
+    }
+    function subtractDays(date, days) {
+      const d = new Date(date);
+      d.setDate(d.getDate() - days);
+      return d;
+    }
+    function diffDays(date1, date2) {
+      const diff = (date1.getTime() - date2.getTime()) / (1000 * 3600 * 24);
+      return Math.floor(diff);
+    }
+    function formatDate(date) {
+      return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    const trimesterDays = {
+      firstTrimester: 12 * 7,
+      secondTrimester: 27 * 7,
+      fullTerm: 40 * 7
+    };
+
+    function calculatePregnancyDates() {
+      const basis = calcBasisSelect.value;
+      if (!basis) {
+        alert('Please select a calculation basis.');
+        return;
+      }
+
+      let dueDate, conceptionDate, lmpDate;
+
+      // Input validations and calculations:
+      if (basis === 'dueDate') {
+        const dueInput = document.getElementById('dueDate').value;
+        if (!dueInput) {
+          alert('Please enter your due date.');
+          return;
+        }
+        dueDate = new Date(dueInput);
+        conceptionDate = subtractDays(dueDate, 266); // Avg gestation from conception ~266 days
+        lmpDate = subtractDays(dueDate, 280);
+
+      } else if (basis === 'lastPeriod') {
+        const lmpInput = document.getElementById('lastPeriod').value;
+        if (!lmpInput) {
+          alert('Please enter your last menstrual period date.');
+          return;
+        }
+        lmpDate = new Date(lmpInput);
+        dueDate = addDays(lmpDate, 280);
+        conceptionDate = addDays(lmpDate, 14);
+
+      } else if (basis === 'ultrasound') {
+        const usDateInput = document.getElementById('usDate').value;
+        const usWeeksInput = parseFloat(document.getElementById('usWeeks').value);
+        if (!usDateInput) {
+          alert('Please enter the ultrasound date.');
+          return;
+        }
+        if (isNaN(usWeeksInput) || usWeeksInput <= 0) {
+          alert('Please enter a valid gestational age (weeks) at ultrasound.');
+          return;
+        }
+        const usDate = new Date(usDateInput);
+        const usDays = Math.round(usWeeksInput * 7);
+        lmpDate = subtractDays(usDate, usDays);
+        dueDate = addDays(lmpDate, 280);
+        conceptionDate = addDays(lmpDate, 14);
+
+      } else if (basis === 'conception') {
+        const conceptionInput = document.getElementById('conceptionDate').value;
+        if (!conceptionInput) {
+          alert('Please enter your conception date.');
+          return;
+        }
+        conceptionDate = new Date(conceptionInput);
+        lmpDate = subtractDays(conceptionDate, 14);
+        dueDate = addDays(lmpDate, 280);
+
+      } else if (basis === 'ivfTransfer') {
+        const ivfDateInput = document.getElementById('ivfDate').value;
+        const ivfDayInput = parseInt(document.getElementById('ivfDay').value);
+        if (!ivfDateInput) {
+          alert('Please enter your IVF transfer date.');
+          return;
+        }
+        if (![3, 5, 6].includes(ivfDayInput)) {
+          alert('Please select a valid day of embryo transfer.');
+          return;
+        }
+        const ivfDate = new Date(ivfDateInput);
+        conceptionDate = subtractDays(ivfDate, ivfDayInput);
+        lmpDate = subtractDays(conceptionDate, 14);
+        dueDate = addDays(lmpDate, 280);
+      }
+
+      if (!dueDate || !conceptionDate || !lmpDate) {
+        alert('Error in calculation. Please check your inputs.');
+        return;
+      }
+
+      // Calculate gestational age today
+      const today = new Date();
+      let gestAgeDays = diffDays(today, lmpDate);
+      if (gestAgeDays < 0) gestAgeDays = 0;
+
+      const gestAgeWeeks = Math.floor(gestAgeDays / 7);
+      const gestAgeDaysRemainder = gestAgeDays % 7;
+
+      // Compute trimester milestones
+      const firstTrimesterEnd = addDays(lmpDate, trimesterDays.firstTrimester);
+      const secondTrimesterEnd = addDays(lmpDate, trimesterDays.secondTrimester);
+      const fullTermDate = addDays(lmpDate, trimesterDays.fullTerm);
+
+      // Compose result text
+      let output = `Estimated Due Date: ${formatDate(dueDate)}\n`;
+      output += `Estimated Conception Date: ${formatDate(conceptionDate)}\n`;
+      output += `Estimated Last Menstrual Period (LMP) Date: ${formatDate(lmpDate)}\n\n`;
+      output += `Today's Date: ${formatDate(today)}\n`;
+      output += `Current Gestational Age: ${gestAgeWeeks} week${gestAgeWeeks !== 1 ? 's' : ''} and ${gestAgeDaysRemainder} day${gestAgeDaysRemainder !== 1 ? 's' : ''}\n\n`;
+      output += `Trimester Milestones:\n`;
+      output += `• First Trimester Ends (~12 weeks): ${formatDate(firstTrimesterEnd)}\n`;
+      output += `• Second Trimester Ends (~27 weeks): ${formatDate(secondTrimesterEnd)}\n`;
+      output += `• Full Term (~40 weeks): ${formatDate(fullTermDate)}`;
+
+      resultDiv.textContent = output;
+    }
+
+    document.getElementById('calculateBtn').addEventListener('click', calculatePregnancyDates);
+  </script>
+
+</body>
+</html>

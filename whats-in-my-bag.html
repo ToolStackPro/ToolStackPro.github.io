@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>🎒 What’s in My Bag?</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&display=swap');
+  body {
+    background: #f0f4f8;
+    font-family: 'Comic Neue', cursive, sans-serif;
+    margin: 0;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+  }
+  h1 {
+    font-size: 2.2rem;
+    color: #333;
+    margin-bottom: 0.2rem;
+    user-select: none;
+  }
+  #challenge {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    font-style: italic;
+    color: #555;
+  }
+  #gameContainer {
+    display: flex;
+    gap: 2rem;
+    max-width: 900px;
+    width: 95%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* Palette of items */
+  #palette {
+    width: 220px;
+    background: white;
+    border: 3px dashed #888;
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    user-select: none;
+  }
+  #palette h2 {
+    text-align: center;
+    margin-top: 0;
+    font-weight: 700;
+    color: #444;
+    margin-bottom: 0.8rem;
+  }
+  .item {
+    background: #ffd93b;
+    border-radius: 12px;
+    margin: 0.5rem auto;
+    padding: 0.4rem 0.8rem;
+    width: 160px;
+    cursor: grab;
+    text-align: center;
+    font-weight: 700;
+    box-shadow:
+      0 2px 5px rgba(0,0,0,0.15);
+    user-select: none;
+    transition: background-color 0.3s ease;
+  }
+  .item:active {
+    cursor: grabbing;
+    background-color: #ffbf33;
+  }
+
+  /* Virtual Bag drop area */
+  #bag {
+    flex: 1 1 440px;
+    background: #fff7e0;
+    border-radius: 18px;
+    padding: 1.5rem;
+    border: 3px solid #ffaa00;
+    box-shadow: 0 6px 20px rgba(255,170,0,0.3);
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+    transition: background-color 0.3s ease;
+  }
+  #bag.dragover {
+    background-color: #fff0b3;
+  }
+  #bag h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    color: #aa7300;
+  }
+  #bagItems {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    justify-content: center;
+  }
+  #bagItems .item {
+    background: #ffb347;
+    box-shadow: 0 2px 7px rgba(0,0,0,0.2);
+    user-select: none;
+  }
+  #bagItems .item.dragging {
+    opacity: 0.5;
+  }
+
+  /* Feedback */
+  #feedback {
+    margin-top: 1.8rem;
+    font-size: 1.2rem;
+    max-width: 660px;
+    color: #6b4700;
+    min-height: 3.4em;
+    font-style: italic;
+    text-align: center;
+    user-select: none;
+  }
+
+  /* Reset and New Challenge buttons */
+  .buttons {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+  }
+  button {
+    cursor: pointer;
+    padding: 0.8rem 1.8rem;
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 20px;
+    background: #ffaa00;
+    color: #4a2700;
+    box-shadow: 0 4px 12px rgba(255,170,0,0.5);
+    user-select: none;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #ffb81f;
+  }
+  button:disabled {
+    background-color: #f6d688;
+    color: #a17400;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  /* Accessibility focus outline */
+  .item:focus, button:focus {
+    outline: 3px solid #ffaa00;
+    outline-offset: 2px;
+  }
+</style>
+</head>
+<body>
+
+<h1>🎒 What’s in My Bag?</h1>
+<div id="challenge" aria-live="polite" aria-atomic="true">Loading challenge...</div>
+
+<div id="gameContainer">
+  <div id="palette" aria-label="Item palette, draggable items list">
+    <h2>Items to pack</h2>
+    <!-- JS will fill items here -->
+  </div>
+
+  <div id="bag" aria-label="Your virtual bag, drop items here" tabindex="0">
+    <h2>Your Bag</h2>
+    <div id="bagItems" aria-live="polite" aria-atomic="true"></div>
+  </div>
+</div>
+
+<div id="feedback" aria-live="polite" aria-atomic="true"></div>
+
+<div class="buttons">
+  <button id="resetBtn" aria-label="Reset bag contents">Reset Bag</button>
+  <button id="newChallengeBtn" aria-label="New challenge">New Challenge</button>
+</div>
+
+<script>
+  const challenges = [
+    { name: 'Going to Mars?', absurd: true },
+    { name: 'Surviving a zombie bakery?', absurd: true },
+    { name: 'Time traveling to the Renaissance?', absurd: true },
+    { name: 'Living in a haunted library?', absurd: true },
+    { name: 'Underwater treasure hunt?', absurd: true },
+    { name: 'Volcano surfing adventure?', absurd: true },
+    { name: 'Space pirate escape?', absurd: true },
+  ];
+
+  const items = [
+    'Rubber duck',
+    'Banana helmet',
+    'Bubble wrap suit',
+    'Inflatable flamingo',
+    'Silly string gun',
+    'Jetpack boots',
+    'Glow-in-the-dark socks',
+    'Instant marshmallow',
+    'Portable disco ball',
+    'Banana peels (for fun!)',
+    'Zombie repellant spray',
+    'Solar-powered pogo stick',
+    'Chocolate-covered broccoli',
+    'Emergency kazoo',
+    'Wind-up rubber chicken',
+  ];
+
+  const challengeEl = document.getElementById('challenge');
+  const paletteEl = document.getElementById('palette');
+  const bagEl = document.getElementById('bag');
+  const bagItemsEl = document.getElementById('bagItems');
+  const feedbackEl = document.getElementById('feedback');
+  const resetBtn = document.getElementById('resetBtn');
+  const newChallengeBtn = document.getElementById('newChallengeBtn');
+
+  let currentChallenge = null;
+  let packedItems = [];
+
+  // Helper to create draggable item element
+  function createItemElement(name) {
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.textContent = name;
+    div.setAttribute('draggable', 'true');
+    div.tabIndex = 0;
+    div.setAttribute('aria-grabbed', 'false');
+    // Drag events
+    div.addEventListener('dragstart', dragStart);
+    div.addEventListener('dragend', dragEnd);
+    // Keyboard support for draggable (space/enter to grab)
+    div.addEventListener('keydown', keyboardDragStart);
+
+    return div;
+  }
+
+  // Drag handlers
+  let draggedItem = null;
+
+  function dragStart(e) {
+    draggedItem = e.target;
+    e.dataTransfer.setData('text/plain', e.target.textContent);
+    e.dataTransfer.effectAllowed = 'move';
+    e.target.classList.add('dragging');
+    e.target.setAttribute('aria-grabbed', 'true');
+  }
+
+  function dragEnd(e) {
+    if (draggedItem) {
+      draggedItem.classList.remove('dragging');
+      draggedItem.setAttribute('aria-grabbed', 'false');
+      draggedItem = null;
+    }
+  }
+
+  function dragOverBag(e) {
+    e.preventDefault();
+    bagEl.classList.add('dragover');
+    e.dataTransfer.dropEffect = 'move';
+  }
+
+  function dragLeaveBag() {
+    bagEl.classList.remove('dragover');
+  }
+
+  function dropOnBag(e) {
+    e.preventDefault();
+    bagEl.classList.remove('dragover');
+    if (!draggedItem) return;
+    const name = draggedItem.textContent;
+    if (packedItems.includes(name)) {
+      feedbackEl.textContent = `You already packed "${name}", try adding something else!`;
+      return;
+    }
+    packedItems.push(name);
+    updateBag();
+    feedbackEl.textContent = generateFeedback();
+  }
+
+  // Remove item handler for bag items click
+  function removeBagItem(e) {
+    if (e.target.classList.contains('item')) {
+      const name = e.target.textContent;
+      packedItems = packedItems.filter(i => i !== name);
+      updateBag();
+      feedbackEl.textContent = generateFeedback();
+    }
+  }
+
+  // Keyboard support for drag (space or enter to "pick up" or add)
+  function keyboardDragStart(e) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const name = e.target.textContent;
+      if (packedItems.includes(name)) {
+        feedbackEl.textContent = `"${name}" is already in your bag!`;
+        return;
+      }
+      packedItems.push(name);
+      updateBag();
+      feedbackEl.textContent = generateFeedback();
+    }
+  }
+
+  // Update bag UI
+  function updateBag() {
+    bagItemsEl.innerHTML = '';
+    packedItems.forEach(name => {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.textContent = name;
+      div.tabIndex = 0;
+      div.setAttribute('aria-label', name + ', click to remove');
+      div.addEventListener('click', removeBagItem);
+      div.addEventListener('keydown', e => {
+        if(e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          removeBagItem(e);
+        }
+      });
+      bagItemsEl.appendChild(div);
+    });
+  }
+
+  // Pick a random challenge
+  function pickChallenge() {
+    const idx = Math.floor(Math.random() * challenges.length);
+    currentChallenge = challenges[idx];
+    challengeEl.textContent = `Challenge: ${currentChallenge.name}`;
+    packedItems = [];
+    updateBag();
+    feedbackEl.textContent = 'Drag items into your bag to prepare...';
+  }
+
+  // Feedback generator based on packed items & challenge
+  function generateFeedback() {
+    if(packedItems.length === 0) {
+      return 'Your bag is empty! Ready for chaos?';
+    }
+    let msgs = [];
+
+    // A few silly rules
+    if(currentChallenge.name === 'Going to Mars?') {
+      if(packedItems.includes('Jetpack boots')) {
+        msgs.push('Nice! Jetpack boots will let you stroll in low gravity!');
+      } else {
+        msgs.push('No jetpack boots? You’ll be stuck walking like an astronaut rookie!');
+      }
+      if(packedItems.includes('Instant marshmallow')) {
+        msgs.push('Instant marshmallow for cosmic camping—sweet!');
+      }
+      if(packedItems.includes('Banana peels (for fun!)')) {
+        msgs.push('Beware the slippery banana peels in zero-G!');
+      }
+    } else if(currentChallenge.name === 'Surviving a zombie bakery?') {
+      if(packedItems.includes('Zombie repellant spray')) {
+        msgs.push('Good thinking! Zombies hate your spray.');
+      }
+      if(packedItems.includes('Chocolate-covered broccoli')) {
+        msgs.push('Healthy but will zombies want broccoli? Hmm...');
+      }
+      if(packedItems.includes('Wind-up rubber chicken')) {
+        msgs.push('Rubber chicken distraction: 10/10 survival skill!');
+      }
+    } else {
+      // Generic silly feedback for other challenges
+      packedItems.forEach(item => {
+        switch(item) {
+          case 'Rubber duck':
+            msgs.push('Rubber duck: Always great for relaxing moments.');
+            break;
+          case 'Bubble wrap suit':
+            msgs.push('Bubble wrap suit: Can’t play dead better than that!');
+            break;
+          case 'Portable disco ball':
+            msgs.push('Portable disco ball: Party even if alone!');
+            break;
+          case 'Glow-in-the-dark socks':
+            msgs.push('Glow socks: Light your path … or confuse others.');
+            break;
+          default:
+            msgs.push(`Who brought the "${item}"? Bold choice!`);
+        }
+      });
+    }
+
+    return msgs.join(' ');
+  }
+
+  // Reset bag
+  function resetBag() {
+    packedItems = [];
+    updateBag();
+    feedbackEl.textContent = generateFeedback();
+  }
+
+  // Initialize palette items
+  function initPalette() {
+    paletteEl.innerHTML = '<h2>Items to pack</h2>';
+    items.forEach(name => {
+      const itemEl = createItemElement(name);
+      paletteEl.appendChild(itemEl);
+    });
+  }
+
+  // Initialize game
+  function init() {
+    initPalette();
+    pickChallenge();
+  }
+
+  // Event listeners for bag drop
+  bagEl.addEventListener('dragover', dragOverBag);
+  bagEl.addEventListener('dragleave', dragLeaveBag);
+  bagEl.addEventListener('drop', dropOnBag);
+  resetBtn.addEventListener('click', () => {
+    resetBag();
+    feedbackEl.textContent = 'Your bag is now empty. Pack cautiously!';
+  });
+  newChallengeBtn.addEventListener('click', () => {
+    pickChallenge();
+  });
+
+  // Start game
+  init();
+
+</script>
+
+</body>
+</html>

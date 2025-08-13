@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>✈️ Fake Trip Planner</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;700&display=swap');
+  body {
+    font-family: 'Quicksand', sans-serif;
+    background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+    margin: 0;
+    padding: 1.5rem;
+    color: #14213d;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  h1 {
+    margin-bottom: 0.5rem;
+    user-select: none;
+  }
+  .container {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem 2rem;
+    max-width: 720px;
+    width: 100%;
+    box-shadow: 0 12px 30px rgba(20,33,61,0.2);
+  }
+  label {
+    display: block;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.3rem;
+  }
+  select, input[type="text"], textarea {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    font-size: 1rem;
+    border-radius: 12px;
+    border: 2px solid #e0e0e0;
+    transition: border-color 0.25s ease;
+  }
+  select:focus, input[type="text"]:focus, textarea:focus {
+    border-color: #14213d;
+    outline: none;
+  }
+  textarea {
+    resize: vertical;
+    min-height: 60px;
+  }
+  button {
+    margin-top: 1.5rem;
+    padding: 0.8rem 1.8rem;
+    background: #fca311;
+    border: none;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    color: #14213d;
+    box-shadow: 0 6px 15px rgb(252 163 17 / 0.6);
+    user-select: none;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #e59400;
+  }
+  .photo-preview {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .photo-preview img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid #fca311;
+    box-shadow: 0 3px 6px rgb(252 163 17 / 0.5);
+  }
+  /* Printable passport style */
+  #passport {
+    font-family: 'Courier New', Courier, monospace;
+    background: #f7f7f4;
+    color: #1a1a1a;
+    border: 2px solid #222;
+    border-radius: 12px;
+    padding: 2rem;
+    max-width: 720px;
+    margin: 2rem auto;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+    position: relative;
+  }
+  #passport h2 {
+    font-weight: 900;
+    letter-spacing: 2px;
+    border-bottom: 3px solid #222;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    text-align: center;
+    text-transform: uppercase;
+  }
+  #passport .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    border-bottom: 1.5px solid #444;
+    padding-bottom: 0.4rem;
+  }
+  #passport .photo-box {
+    width: 120px;
+    height: 150px;
+    border: 1px solid #444;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #dcdcdc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #666;
+  }
+  #passport .photo-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  #passport .personal-info {
+    flex: 1;
+    margin-left: 2rem;
+    font-size: 0.9rem;
+  }
+  #passport .personal-info div {
+    margin-bottom: 0.6rem;
+  }
+  #passport .label {
+    font-weight: 700;
+    color: #555;
+    width: 130px;
+    display: inline-block;
+  }
+  #passport .trip-section {
+    margin-top: 1.5rem;
+    border-top: 2px solid #222;
+    padding-top: 1rem;
+    font-size: 0.9rem;
+  }
+  #passport .trip-list {
+    list-style: none;
+    padding-left: 0;
+    columns: 2;
+    column-gap: 3rem;
+    margin-top: 0.5rem;
+  }
+  #passport .trip-list li {
+    position: relative;
+    padding-left: 1.2rem;
+    margin-bottom: 0.5rem;
+  }
+  #passport .trip-list li::before {
+    content: "✈";
+    position: absolute;
+    left: 0;
+    color: #fca311;
+  }
+  #passport .passport-photos {
+    margin-top: 1.5rem;
+    border-top: 2px solid #222;
+    padding-top: 1rem;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  #passport .passport-photos img {
+    width: 100px;
+    height: 100px;
+    border-radius: 8px;
+    border: 1.5px solid #ccc;
+    box-shadow: 0 0 6px rgba(252,163,17,0.5);
+  }
+  #passport .signature-box {
+    margin-top: 2rem;
+    font-style: italic;
+    border-top: 1px dashed #aaa;
+    padding-top: 1rem;
+    text-align: right;
+    font-size: 0.9rem;
+    color: #444;
+  }
+  /* Optional faux barcode */
+  #passport .barcode {
+    width: 200px;
+    height: 40px;
+    background: repeating-linear-gradient(
+      to right,
+      #222,
+      #222 2px,
+      #fff 2px,
+      #fff 6px
+    );
+    margin-top: 2rem;
+    border-radius: 4px;
+  }
+
+  /* Print styles */
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    #passport, #passport * {
+      visibility: visible;
+    }
+    #passport {
+      position: absolute;
+      left: 0; top: 0;
+      width: 100%;
+      padding: 2rem;
+      box-shadow: none;
+      border: none;
+      background: white;
+      color: black;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1>✈️ Fake Trip Planner</h1>
+<div class="container" id="planner-container">
+
+  <label for="travelerName">Traveler Name</label>
+  <input type="text" id="travelerName" placeholder="Your full name" aria-label="Traveler Name" />
+
+  <label for="hotelSelect">Pick a Hotel</label>
+  <select id="hotelSelect" aria-label="Select a hotel">
+    <!-- JS fills options -->
+  </select>
+
+  <label for="guideSelect">Pick a Tour Guide</label>
+  <select id="guideSelect" aria-label="Select a tour guide">
+    <!-- JS fills options -->
+  </select>
+
+  <div class="flex-row" style="display:flex; gap: 1rem; flex-wrap: wrap;">
+    <div style="flex: 1 1 300px;">
+      <label for="activities">Daily Activities (one per line)</label>
+      <textarea id="activities" placeholder="E.g. Visit the local market&#10;Hiking in the mountains"></textarea>
+    </div>
+    <div style="flex: 1 1 300px;">
+      <label for="meals">Meals to Try (one per line)</label>
+      <textarea id="meals" placeholder="E.g. Spicy street tacos&#10;Fresh seafood platter"></textarea>
+    </div>
+  </div>
+
+  <label for="souvenirs">Souvenirs to Buy (one per line)</label>
+  <textarea id="souvenirs" placeholder="E.g. Handmade pottery&#10;Local spices"></textarea>
+
+  <label for="photos">Add Your Trip Photos (local images only)</label>
+  <input type="file" id="photos" multiple accept="image/*" aria-label="Add trip photos" />
+  <div class="photo-preview" id="photoPreview"></div>
+
+  <button id="generateBtn" aria-label="Generate Trip Passport">Generate Trip Passport</button>
+
+</div>
+
+<div id="passport" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+  const hotelNames = [
+    "The Sleepy Alpaca",
+    "Moonlight Bamboo Inn",
+    "The Wandering Otter",
+    "Mystic Palm Resort",
+    "The Glittering Narwhal",
+    "Emerald Lagoon Hotel",
+    "The Laughing Llama",
+    "Silent Pine Lodge",
+    "The Cozy Wombat",
+    "Serendipity Suites"
+  ];
+
+  const guideNames = [
+    "Captain Zigzag",
+    "Professor Wanderlust",
+    "Auntie Adventure",
+    "The Jolly Rambler",
+    "Sir Roamsalot",
+    "Miss Mapquest",
+    "The Curious Fox",
+    "Duke of Destinations",
+    "Lady Pathfinder",
+    "Scout McExplore"
+  ];
+
+  const hotelSelect = document.getElementById('hotelSelect');
+  const guideSelect = document.getElementById('guideSelect');
+
+  function fillSelectOptions(selectElement, options) {
+    options.forEach(opt => {
+      const optionElem = document.createElement('option');
+      optionElem.value = opt;
+      optionElem.textContent = opt;
+      selectElement.appendChild(optionElem);
+    });
+  }
+
+  fillSelectOptions(hotelSelect, hotelNames);
+  fillSelectOptions(guideSelect, guideNames);
+
+  const photosInput = document.getElementById('photos');
+  const photoPreview = document.getElementById('photoPreview');
+  let photoDataURLs = [];
+
+  photosInput.addEventListener('change', () => {
+    photoPreview.innerHTML = '';
+    photoDataURLs = [];
+    const files = photosInput.files;
+    for(let i=0; i<files.length; i++) {
+      const file = files[i];
+      if(!file.type.startsWith('image/')) continue;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        photoDataURLs.push(reader.result);
+        const img = document.createElement('img');
+        img.src = reader.result;
+        img.alt = 'Trip photo '+(i+1);
+        photoPreview.appendChild(img);
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  const generateBtn = document.getElementById('generateBtn');
+  const passport = document.getElementById('passport');
+  const travelerNameInput = document.getElementById('travelerName');
+
+  function createListFromTextarea(textarea) {
+    return textarea.value
+      .split('\n')
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+  }
+
+  function generatePassport() {
+    const hotel = hotelSelect.value;
+    const guide = guideSelect.value;
+    const activities = createListFromTextarea(document.getElementById('activities'));
+    const meals = createListFromTextarea(document.getElementById('meals'));
+    const souvenirs = createListFromTextarea(document.getElementById('souvenirs'));
+    const travelerNameRaw = travelerNameInput.value.trim();
+    const travelerName = travelerNameRaw.length > 0 ? travelerNameRaw : "Alex Traveler";
+
+    // Generate fake passport number with prefix + random digits
+    const passportNumber = 'X' + Math.floor(100000000 + Math.random() * 900000000);
+    // Fixed nationality for fun
+    const nationality = "Wonderlander";
+    const dob = "1990-06-15";
+    const expiration = "2030-06-14";
+
+    passport.innerHTML = '';
+
+    const header = document.createElement('h2');
+    header.textContent = "FAKE TRIP PASSPORT";
+    passport.appendChild(header);
+
+    const pageHeader = document.createElement('div');
+    pageHeader.className = "page-header";
+
+    const photoBox = document.createElement('div');
+    photoBox.className = "photo-box";
+    if(photoDataURLs.length > 0) {
+      const img = document.createElement('img');
+      img.src = photoDataURLs[0];
+      img.alt = "Traveler Photo";
+      photoBox.appendChild(img);
+    } else {
+      photoBox.textContent = "No Photo";
+    }
+
+    const personalInfo = document.createElement('div');
+    personalInfo.className = "personal-info";
+    personalInfo.innerHTML = `
+      <div><span class="label">Name:</span> ${travelerName}</div>
+      <div><span class="label">Passport No:</span> ${passportNumber}</div>
+      <div><span class="label">Nationality:</span> ${nationality}</div>
+      <div><span class="label">Date of Birth:</span> ${dob}</div>
+      <div><span class="label">Expiration:</span> ${expiration}</div>
+      <div><span class="label">Hotel:</span> ${hotel}</div>
+      <div><span class="label">Tour Guide:</span> ${guide}</div>
+    `;
+
+    pageHeader.appendChild(photoBox);
+    pageHeader.appendChild(personalInfo);
+    passport.appendChild(pageHeader);
+
+    function addTripSection(title, items) {
+      const section = document.createElement('div');
+      section.className = "trip-section";
+      const h3 = document.createElement('h3');
+      h3.textContent = title;
+      section.appendChild(h3);
+      if(items.length === 0) {
+        const p = document.createElement('p');
+        p.textContent = "None";
+        section.appendChild(p);
+      } else {
+        const ul = document.createElement('ul');
+        ul.className = "trip-list";
+        items.forEach(item => {
+          const li = document.createElement('li');
+          li.textContent = item;
+          ul.appendChild(li);
+        });
+        section.appendChild(ul);
+      }
+      passport.appendChild(section);
+    }
+
+    addTripSection('Daily Activities', activities);
+    addTripSection('Meals to Try', meals);
+    addTripSection('Souvenirs to Buy', souvenirs);
+
+    if(photoDataURLs.length > 0) {
+      const photosDiv = document.createElement('div');
+      photosDiv.className = "passport-photos";
+      photoDataURLs.forEach((dataURL, i) => {
+        const img = document.createElement('img');
+        img.src = dataURL;
+        img.alt = `Trip photo ${i+1}`;
+        photosDiv.appendChild(img);
+      });
+      passport.appendChild(photosDiv);
+    }
+
+    const signatureBox = document.createElement('div');
+    signatureBox.className = "signature-box";
+    signatureBox.textContent = "Signature: ____________________________";
+    passport.appendChild(signatureBox);
+
+    const barcode = document.createElement('div');
+    barcode.className = "barcode";
+    passport.appendChild(barcode);
+
+    passport.scrollIntoView({behavior: 'smooth'});
+  }
+
+  generateBtn.addEventListener('click', generatePassport);
+</script>
+
+</body>
+</html>

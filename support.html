@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ToolStackPro - Support</title>
+  <style>
+    /* Reset and base */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f9fafb;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      background: #2f80ed;
+      color: #fff;
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 8px rgb(47 128 237 / 0.3);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      user-select: none;
+    }
+
+    nav {
+      display: flex;
+      gap: 25px;
+      flex-wrap: wrap;
+    }
+
+    nav a {
+      color: #ffffffcc;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: color 0.25s ease;
+    }
+    nav a:hover, nav a:focus {
+      color: #ffffff;
+      text-decoration: underline;
+      outline: none;
+    }
+    nav a[aria-current="page"] {
+      color: #fff;
+      text-decoration: underline;
+    }
+
+    /* Main content */
+    main {
+      flex-grow: 1;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      color: #2f80ed;
+      letter-spacing: 1.5px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    section.support-content {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgb(0 0 0 / 0.1);
+      padding: 30px 40px;
+      color: #444;
+    }
+
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    h2 {
+      color: #2f80ed;
+      margin-top: 30px;
+      margin-bottom: 15px;
+      font-weight: 700;
+    }
+
+    ul {
+      padding-left: 20px;
+      margin-bottom: 25px;
+    }
+
+    ul li {
+      margin-bottom: 15px;
+      font-size: 1rem;
+      line-height: 1.4;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    label {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    textarea {
+      padding: 12px;
+      border-radius: 8px;
+      border: 1.5px solid #ccc;
+      font-size: 1rem;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      resize: vertical;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    input[type="text"]:focus,
+    input[type="email"]:focus,
+    textarea:focus {
+      border-color: #2f80ed;
+      outline: none;
+      box-shadow: 0 0 6px #2f80edaa;
+    }
+
+    button[type="submit"] {
+      background: #2f80ed;
+      color: white;
+      font-weight: 700;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: background-color 0.3s ease;
+    }
+    button[type="submit"]:hover,
+    button[type="submit"]:focus {
+      background: #1c5dc9;
+      outline: none;
+    }
+
+    /* Footer */
+    footer {
+      background: #2f80ed;
+      color: #fff;
+      text-align: center;
+      padding: 20px 15px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-top: auto;
+      box-shadow: 0 -2px 8px rgb(47 128 237 / 0.3);
+    }
+
+    footer a {
+      color: #caf0ff;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    footer a:hover,
+    footer a:focus {
+      text-decoration: underline;
+    }
+
+    /* Accessibility */
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible {
+      outline: 3px solid #2f80ed;
+      outline-offset: 3px;
+    }
+
+    /* Responsive */
+    @media (max-width: 480px) {
+      header {
+        justify-content: center;
+        gap: 20px;
+      }
+      main {
+        margin-top: 20px;
+      }
+      section.support-content {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo" tabindex="0">ToolStackPro</div>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="support.html" aria-current="page">Support</a>
+      <a href="contact.html">Contact</a>
+      <a href="about.html">About</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Support</h1>
+    <section class="support-content" aria-label="Support Information and Contact Form">
+      <p>If you need help with our tools or have any questions, we're here to assist you. Feel free to browse the FAQs below or send us a message using the contact form.</p>
+
+      <h2>FAQs</h2>
+      <ul>
+        <li><strong>How do I use the Age Calculator?</strong><br>Simply enter your birthdate in the tool, and it will compute your exact age.</li>
+        <li><strong>Is my data private?</strong><br>Absolutely. We don't store any personal information you enter.</li>
+        <li><strong>How can I report a bug or suggest a feature?</strong><br>Use the contact form below or email us directly through the Contact page.</li>
+      </ul>
+
+      <h2>Contact Support</h2>
+      <form id="support-form" aria-label="Support contact form" novalidate>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required aria-required="true" placeholder="Your full name" />
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required aria-required="true" placeholder="your-email@example.com" />
+
+        <label for="message">Message:</label>
+        <textarea id="message" name="message" rows="5" required aria-required="true" placeholder="Describe your issue or question here"></textarea>
+
+        <button type="submit">Send Message</button>
+      </form>
+      <p id="form-feedback" role="alert" style="color: green; margin-top: 15px; display: none;"></p>
+    </section>
+  </main>
+
+  <footer>
+    &copy; 2025 ToolStackPro &nbsp;|&nbsp; 
+    <a href="privacy.html">Privacy Policy</a> &nbsp;|&nbsp; 
+    <a href="terms.html">Terms of Service</a>
+  </footer>
+
+  <script>
+    document.getElementById('support-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const feedback = document.getElementById('form-feedback');
+      const name = this.name.value.trim();
+      const email = this.email.value.trim();
+      const message = this.message.value.trim();
+
+      if (!name || !email || !message) {
+        feedback.textContent = 'Please fill out all fields.';
+        feedback.style.color = 'red';
+        feedback.style.display = 'block';
+        return;
+      }
+
+      // Basic email format validation
+      const emailPattern = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+      if (!emailPattern.test(email)) {
+        feedback.textContent = 'Please enter a valid email address.';
+        feedback.style.color = 'red';
+        feedback.style.display = 'block';
+        return;
+      }
+
+      feedback.style.display = 'none';
+      this.querySelector('button[type="submit"]').disabled = true;
+      this.querySelector('button[type="submit"]').textContent = 'Sending...';
+
+      setTimeout(() => {
+        this.reset();
+        this.querySelector('button[type="submit"]').disabled = false;
+        this.querySelector('button[type="submit"]').textContent = 'Send Message';
+        feedback.textContent = 'Thank you for contacting support! We will get back to you shortly.';
+        feedback.style.color = 'green';
+        feedback.style.display = 'block';
+      }, 1500);
+    });
+  </script>
+</body>
+</html>

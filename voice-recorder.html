@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Voice Recorder with Waveform</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7f8;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    .recorder {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    button {
+      font-size: 1rem;
+      padding: 10px;
+      margin: 0.5rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: #2980b9;
+      color: white;
+      width: 140px;
+      transition: background-color 0.3s ease;
+    }
+    button:hover:not(:disabled) {
+      background-color: #3498db;
+    }
+    button:disabled {
+      background-color: #95a5a6;
+      cursor: not-allowed;
+    }
+    audio {
+      margin-top: 1rem;
+      width: 100%;
+      outline: none;
+      border-radius: 4px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    #recordingStatus {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #e74c3c; /* Red */
+      font-size: 1.2rem;
+      visibility: hidden;
+      user-select: none;
+    }
+    #downloadLink {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 10px 20px;
+      background-color: #27ae60;
+      color: white;
+      font-weight: bold;
+      border-radius: 4px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #downloadLink:hover {
+      background-color: #2ecc71;
+    }
+    canvas {
+      margin-top: 20px;
+      width: 100%;
+      height: 80px;
+      border-radius: 4px;
+      background-color: #ecf0f1;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+    }
+    .about-section {
+      margin-top: 30px;
+      background: #fff3cd;
+      border-left: 5px solid #ffeeba;
+      padding: 15px 20px;
+      border-radius: 4px;
+      color: #856404;
+      font-size: 1em;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Voice Recorder</h1>
+
+  <div class="recorder">
+    <button id="startBtn">Start Recording</button>
+    <button id="stopBtn" disabled>Stop Recording</button>
+
+    <div id="recordingStatus">● Recording...</div>
+    
+    <canvas id="waveform"></canvas>
+
+    <audio id="audioPlayback" controls></audio>
+
+    <a id="downloadLink" style="display: none;">Download Recording</a>
+  </div>
+
+  <div class="about-section">
+    <h2>About this Recorder</h2>
+    <p>
+      This Voice Recorder includes a real-time waveform visualization that animates with your voice when you speak. It captures audio from your microphone, plays it back, and lets you download the recording as a WAV file — all done entirely in your browser without sending any data to a server.
+    </p>
+  </div>
+
+  <script>
+    let mediaRecorder;
+    let audioChunks = [];
+    let animationId;
+    let audioContext;
+    let analyser;
+    let dataArray;
+    let source;
+    let stream;
+
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const audioPlayback = document.getElementById('audioPlayback');
+    const downloadLink = document.getElementById('downloadLink');
+    const recordingStatus = document.getElementById('recordingStatus');
+    const canvas = document.getElementById('waveform');
+    const canvasCtx = canvas.getContext('2d');
+
+    // Resize canvas to match width dynamically
+    function resizeCanvas() {
+      canvas.width = canvas.clientWidth * window.devicePixelRatio;
+      canvas.height = canvas.clientHeight * window.devicePixelRatio;
+      canvas.style.width = canvas.clientWidth + 'px';
+      canvas.style.height = canvas.clientHeight + 'px';
+      canvasCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function drawWaveform() {
+      animationId = requestAnimationFrame(drawWaveform);
+
+      analyser.getByteTimeDomainData(dataArray);
+
+      canvasCtx.fillStyle = '#ecf0f1'; // background
+      canvasCtx.fillRect(0, 0, canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
+
+      canvasCtx.lineWidth = 2;
+      canvasCtx.strokeStyle = '#2980b9';
+
+      canvasCtx.beginPath();
+
+      const sliceWidth = (canvas.width / window.devicePixelRatio) / dataArray.length;
+      let x = 0;
+
+      for(let i = 0; i < dataArray.length; i++) {
+        const v = dataArray[i] / 128.0; // normalize between 0 and ~2
+        const y = (v * (canvas.height / window.devicePixelRatio)) / 2;
+
+        if(i === 0) {
+          canvasCtx.moveTo(x, y);
+        } else {
+          canvasCtx.lineTo(x, y);
+        }
+
+        x += sliceWidth;
+      }
+
+      canvasCtx.lineTo(canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio / 2);
+      canvasCtx.stroke();
+    }
+
+    startBtn.addEventListener('click', async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        audioChunks = [];
+
+        if(!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        source = audioContext.createMediaStreamSource(stream);
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 2048;
+        const bufferLength = analyser.fftSize;
+        dataArray = new Uint8Array(bufferLength);
+
+        source.connect(analyser);
+
+        drawWaveform();
+
+        mediaRecorder.ondataavailable = event => {
+          if (event.data.size > 0) {
+            audioChunks.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = () => {
+          cancelAnimationFrame(animationId);
+          canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+          const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+          const audioUrl = URL.createObjectURL(audioBlob);
+          audioPlayback.src = audioUrl;
+
+          downloadLink.href = audioUrl;
+          downloadLink.download = 'recording.wav';
+          downloadLink.style.display = 'inline-block';
+          downloadLink.textContent = 'Download Recording';
+
+          recordingStatus.style.visibility = 'hidden';
+
+          // Stop all media tracks to release microphone
+          stream.getTracks().forEach(track => track.stop());
+        };
+
+        mediaRecorder.start();
+
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        downloadLink.style.display = 'none';
+        audioPlayback.src = '';
+
+        recordingStatus.style.visibility = 'visible';
+      } catch (err) {
+        alert('Microphone permission denied or not available.');
+      }
+    });
+
+    stopBtn.addEventListener('click', () => {
+      if(mediaRecorder && mediaRecorder.state !== "inactive") {
+        mediaRecorder.stop();
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+      }
+    });
+  </script>
+
+</body>
+</html>

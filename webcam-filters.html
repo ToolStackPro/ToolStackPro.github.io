@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Webcam Filters</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7f8;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    .recorder {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    video, canvas {
+      width: 100%;
+      max-height: 300px;
+      border-radius: 8px;
+      background: black;
+      margin-bottom: 15px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    select, button {
+      font-size: 1rem;
+      padding: 10px;
+      margin: 0.5rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: #2980b9;
+      color: white;
+      width: 140px;
+      transition: background-color 0.3s ease;
+    }
+    select {
+      width: auto;
+      color: #333;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+    select:hover {
+      border-color: #2980b9;
+    }
+    button:hover:not(:disabled) {
+      background-color: #3498db;
+    }
+    button:disabled {
+      background-color: #95a5a6;
+      cursor: not-allowed;
+    }
+    #statusMessage {
+      margin-top: 15px;
+      font-weight: bold;
+      color: #27ae60;
+      font-size: 1.2rem;
+      user-select: none;
+      min-height: 1.4em;
+    }
+    .about-section {
+      margin-top: 30px;
+      background: #fff3cd;
+      border-left: 5px solid #ffeeba;
+      padding: 15px 20px;
+      border-radius: 4px;
+      color: #856404;
+      font-size: 1em;
+      line-height: 1.5;
+      text-align: left;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Webcam Filters</h1>
+
+  <div class="recorder">
+    <video id="webcamVideo" autoplay playsinline></video>
+
+    <select id="filterSelect" aria-label="Choose a video filter">
+      <option value="none">None</option>
+      <option value="grayscale(100%)">Grayscale</option>
+      <option value="sepia(100%)">Sepia</option>
+      <option value="blur(5px)">Blur</option>
+      <option value="pixelate">Pixelate</option>
+      <!-- Advanced filters -->
+      <option value="brightness(150%) contrast(120%)">Bright & High Contrast</option>
+      <option value="hue-rotate(90deg) saturate(200%)">Color Shift</option>
+      <option value="invert(100%)">Invert Colors</option>
+      <option value="drop-shadow(8px 8px 10px #222)">Drop Shadow</option>
+      <option value="saturate(300%) contrast(80%)">Vibrant</option>
+      <option value="sepia(60%) blur(3px) brightness(110%)">Vintage Blur</option>
+      <option value="hue-rotate(180deg) invert(50%) brightness(90%)">Psychedelic</option>
+      <option value="contrast(200%) brightness(130%) saturate(150%)">Pop Art</option>
+      <option value="grayscale(100%) drop-shadow(4px 4px 5px gray)">Monochrome Shadow</option>
+    </select>
+
+    <button id="startBtn">Start Webcam</button>
+    <button id="stopBtn" disabled>Stop Webcam</button>
+
+    <div id="statusMessage"></div>
+  </div>
+
+  <div class="about-section">
+    <h2>About this Webcam Filter</h2>
+    <p>
+      This application captures your webcam video and applies selected advanced real-time CSS video filters including brightness, contrast, hue rotation, invert, drop-shadow, saturation, and complex combinations. The pixelate effect uses canvas processing to achieve the pixelation effect. All processing happens entirely client-side with privacy in mind.
+    </p>
+  </div>
+
+  <script>
+    const video = document.getElementById('webcamVideo');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const filterSelect = document.getElementById('filterSelect');
+    const statusMessage = document.getElementById('statusMessage');
+
+    let stream = null;
+    let animationFrameId = null;
+
+    // Canvas for pixelate effect
+    const pixelateCanvas = document.createElement('canvas');
+    const pixelateCtx = pixelateCanvas.getContext('2d');
+    let pixelSize = 10;
+
+    filterSelect.disabled = true;
+
+    function startWebcam() {
+      statusMessage.textContent = 'Requesting webcam access...';
+      startBtn.disabled = true;
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(mediaStream => {
+          stream = mediaStream;
+          video.srcObject = stream;
+          filterSelect.disabled = false;
+          stopBtn.disabled = false;
+          statusMessage.textContent = 'Webcam started.';
+          filterSelect.value = 'none';
+          applyFilter();
+        })
+        .catch(err => {
+          alert('Unable to access webcam: ' + err.message);
+          statusMessage.textContent = '';
+          startBtn.disabled = false;
+        });
+    }
+
+    function stopWebcam() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      video.srcObject = null;
+      stopBtn.disabled = true;
+      filterSelect.disabled = true;
+      startBtn.disabled = false;
+      statusMessage.textContent = 'Webcam stopped.';
+      cancelAnimationFrame(animationFrameId);
+      video.style.filter = 'none';
+      pixelateCanvas.width = 0;
+      pixelateCanvas.height = 0;
+      if (pixelateCanvas.parentElement) {
+        pixelateCanvas.parentElement.removeChild(pixelateCanvas);
+      }
+      video.style.display = 'block';
+    }
+
+    function applyFilter() {
+      const filterValue = filterSelect.value;
+      if (filterValue === 'pixelate') {
+        video.style.display = 'none';
+        if (!pixelateCanvas.parentElement) {
+          video.parentElement.insertBefore(pixelateCanvas, video.nextSibling);
+          pixelateCanvas.style.width = '100%';
+          pixelateCanvas.style.borderRadius = '8px';
+          pixelateCanvas.style.marginBottom = '15px';
+          pixelateCanvas.style.background = 'black';
+        }
+        startPixelateProcessing();
+      } else {
+        if (pixelateCanvas.parentElement) {
+          pixelateCanvas.parentElement.removeChild(pixelateCanvas);
+        }
+        video.style.display = 'block';
+        cancelAnimationFrame(animationFrameId);
+        video.style.filter = filterValue;
+      }
+    }
+
+    function startPixelateProcessing() {
+      cancelAnimationFrame(animationFrameId);
+      function pixelateFrame() {
+        if (!stream) return;
+        pixelateCanvas.width = video.videoWidth;
+        pixelateCanvas.height = video.videoHeight;
+        if (pixelateCanvas.width === 0 || pixelateCanvas.height === 0) {
+          animationFrameId = requestAnimationFrame(pixelateFrame);
+          return;
+        }
+        pixelateCtx.imageSmoothingEnabled = false;
+        pixelateCtx.clearRect(0, 0, pixelateCanvas.width, pixelateCanvas.height);
+        // Draw small scaled video
+        pixelateCtx.drawImage(video, 0, 0, pixelateCanvas.width / pixelSize, pixelateCanvas.height / pixelSize);
+        // Scale back up
+        pixelateCtx.drawImage(pixelateCanvas, 0, 0, pixelateCanvas.width / pixelSize, pixelateCanvas.height / pixelSize,
+          0, 0, pixelateCanvas.width, pixelateCanvas.height);
+        animationFrameId = requestAnimationFrame(pixelateFrame);
+      }
+      pixelateFrame();
+    }
+
+    filterSelect.addEventListener('change', applyFilter);
+    startBtn.addEventListener('click', startWebcam);
+    stopBtn.addEventListener('click', stopWebcam);
+  </script>
+
+</body>
+</html>
