@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Advanced Loader Animation Generator with Extended Features</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f4f7f8;
+    padding: 20px;
+    max-width: 700px;
+    margin: auto;
+    color: #333;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+  }
+  .container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+  }
+  label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: bold;
+    color: #2c3e50;
+  }
+  input[type="color"],
+  input[type="number"],
+  select {
+    width: 100%;
+    max-width: 230px;
+    padding: 8px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 1em;
+    color: #333;
+  }
+  button {
+    padding: 10px;
+    background: #2980b9;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    font-size: 1em;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.3s ease;
+  }
+  button:hover:not(:disabled) {
+    background: #3498db;
+  }
+  button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  #preview {
+    margin: 20px auto 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 130px;
+  }
+  pre#codeOutput {
+    background: #ecf0f1;
+    padding: 15px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: #2c3e50;
+    margin-top: 15px;
+    max-height: 300px;
+  }
+  .controls-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-end;
+  }
+  .controls-row > div {
+    flex: 1 1 150px;
+  }
+  .about-section {
+    background: #fff3cd;
+    border-left: 5px solid #ffeeba;
+    padding: 20px;
+    border-radius: 4px;
+    color: #856404;
+    font-size: 1em;
+    line-height: 1.5;
+    box-shadow: 0 0 10px rgba(255, 235, 179, 0.5);
+  }
+  .about-section h2 {
+    margin-top: 0;
+    color: #7a5f00;
+    margin-bottom: 10px;
+  }
+  .flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  /* Loader Base */
+  :root {
+    --loader-speed: 1.5s;
+    --loader-color: #2980b9;
+  }
+
+  /* Spinner Loader */
+  .loader-spinner {
+    border: var(--spinner-thickness, 8px) solid transparent;
+    border-top-color: var(--loader-color);
+    border-radius: 50%;
+    animation: spinner-rotate var(--loader-speed) linear infinite;
+    width: var(--loader-size);
+    height: var(--loader-size);
+    animation-direction: var(--animation-direction, normal);
+    animation-timing-function: var(--animation-easing, linear);
+  }
+
+  @keyframes spinner-rotate {
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Dots Loader */
+  .loader-dots {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .loader-dot {
+    width: var(--dot-size);
+    height: var(--dot-size);
+    background-color: var(--loader-color);
+    border-radius: 50%;
+    animation: dots-bounce var(--loader-speed) ease-in-out infinite;
+    animation-direction: var(--animation-direction, normal);
+    animation-timing-function: var(--animation-easing, ease-in-out);
+  }
+  /* Will dynamically set animation-delay */
+
+  @keyframes dots-bounce {
+    0%, 80%, 100% {
+      transform: translateY(0);
+    }
+    40% {
+      transform: translateY(-20%);
+    }
+  }
+
+  /* Bars Loader */
+  .loader-bars {
+    display: flex;
+    gap: 0.3rem;
+    align-items: flex-end;
+  }
+  .loader-bar {
+    background-color: var(--loader-color);
+    width: var(--bar-width);
+    height: 30%;
+    animation: bars-scale var(--loader-speed) ease-in-out infinite;
+    border-radius: 2px;
+    animation-direction: var(--animation-direction, normal);
+    animation-timing-function: var(--animation-easing, ease-in-out);
+  }
+  /* animation-delay will be set inline */
+
+  @keyframes bars-scale {
+    0%, 40%, 100% { height: 30%; }
+    20% { height: 80%; }
+  }
+
+  /* Pulsing Circle Loader */
+  .loader-pulse {
+    width: var(--loader-size);
+    height: var(--loader-size);
+    background-color: var(--loader-color);
+    border-radius: 50%;
+    animation: pulse-scale var(--loader-speed) ease-in-out infinite;
+    animation-direction: var(--animation-direction, normal);
+    animation-timing-function: var(--animation-easing, ease-in-out);
+  }
+  @keyframes pulse-scale {
+    0%, 100% { transform: scale(1); opacity: 1;}
+    50% { transform: scale(1.3); opacity: 0.6;}
+  }
+
+  /* Dual Ring Loader */
+  .loader-dual-ring {
+    display: inline-block;
+    width: var(--loader-size);
+    height: var(--loader-size);
+  }
+  .loader-dual-ring:after {
+    content: " ";
+    display: block;
+    width: calc(var(--loader-size));
+    height: calc(var(--loader-size));
+    margin: 1px;
+    border-radius: 50%;
+    border: var(--spinner-thickness, 8px) solid var(--loader-color);
+    border-color: var(--loader-color) transparent var(--loader-color) transparent;
+    animation: dual-ring-spin var(--loader-speed) linear infinite;
+    animation-direction: var(--animation-direction, normal);
+    animation-timing-function: var(--animation-easing, linear);
+  }
+  @keyframes dual-ring-spin {
+    0% { transform: rotate(0deg);}
+    100% { transform: rotate(360deg);}
+  }
+
+  /* Chasing Dots Loader */
+  .loader-chasing-dots {
+    position: relative;
+    width: var(--loader-size);
+    height: var(--loader-size);
+    animation-direction: var(--animation-direction, normal);
+    animation-timing-function: var(--animation-easing, linear);
+  }
+  .loader-chasing-dots .dot1,
+  .loader-chasing-dots .dot2 {
+    position: absolute;
+    top: 50%;
+    width: calc(var(--loader-size) / 5);
+    height: calc(var(--loader-size) / 5);
+    background-color: var(--loader-color);
+    border-radius: 50%;
+    transform: translateY(-50%);
+    animation-timing-function: var(--animation-easing, linear);
+  }
+  .loader-chasing-dots .dot1 {
+    left: 0;
+    animation: chasing-dot1-spin var(--loader-speed) infinite ease-in-out;
+    animation-direction: var(--animation-direction, normal);
+  }
+  .loader-chasing-dots .dot2 {
+    left: calc(var(--loader-size) / 2);
+    animation: chasing-dot2-spin var(--loader-speed) infinite ease-in-out;
+    animation-direction: var(--animation-direction, normal);
+  }
+  @keyframes chasing-dot1-spin {
+    0%, 100% { transform: translateY(-50%) rotate(0deg); }
+    50% { transform: translateY(-50%) rotate(180deg); }
+  }
+  @keyframes chasing-dot2-spin {
+    0%, 100% { transform: translateY(-50%) rotate(0deg); }
+    50% { transform: translateY(-50%) rotate(-180deg); }
+  }
+
+  /* Dark mode */
+  body.dark-mode {
+    background: #222;
+    color: #eee;
+  }
+  body.dark-mode .container {
+    background: #333;
+    box-shadow: 0 0 15px rgba(255 255 255 / 0.1);
+  }
+  body.dark-mode label {
+    color: #eee;
+  }
+  body.dark-mode input,
+  body.dark-mode select {
+    background: #444;
+    border: 1px solid #666;
+    color: #eee;
+  }
+  body.dark-mode pre#codeOutput {
+    background: #444;
+    color: #eee;
+  }
+  body.dark-mode .about-section {
+    background: #5d4b00;
+    border-color: #9b7c0c;
+    color: #f1e8a8;
+    box-shadow: 0 0 10px rgba(255, 244, 143, 0.5);
+  }
+</style>
+</head>
+<body>
+  <h1>Advanced Loader Animation Generator</h1>
+  <div class="container" role="region" aria-label="Loader animation generator controls and preview">
+    <div class="controls-row">
+      <div>
+        <label for="loaderType">Loader Style</label>
+        <select id="loaderType" aria-label="Choose loader style">
+          <option value="spinner">Spinner</option>
+          <option value="dots">Dots</option>
+          <option value="bars">Bars</option>
+          <option value="pulse">Pulsing Circle</option>
+          <option value="dualRing">Dual Ring</option>
+          <option value="chasingDots">Chasing Dots</option>
+        </select>
+      </div>
+      <div>
+        <label for="loaderColor">Loader Color</label>
+        <input type="color" id="loaderColor" value="#2980b9" aria-label="Select loader color" />
+      </div>
+      <div>
+        <label for="loaderSize">Loader Size (px)</label>
+        <input type="number" id="loaderSize" value="80" min="20" max="300" aria-label="Select loader size in pixels" />
+      </div>
+      <div>
+        <label for="spinnerThickness">Thickness (px)</label>
+        <input type="number" id="spinnerThickness" value="8" min="1" max="40" aria-label="Select thickness for spinner and dual ring" />
+      </div>
+      <div>
+        <label for="animationSpeed">Animation Speed (seconds)</label>
+        <input type="number" id="animationSpeed" value="1.5" step="0.1" min="0.1" max="10" aria-label="Select animation speed in seconds" />
+      </div>
+      <div>
+        <label for="animationEasing">Animation Easing</label>
+        <select id="animationEasing" aria-label="Select animation easing">
+          <option value="linear">Linear</option>
+          <option value="ease">Ease</option>
+          <option value="ease-in">Ease In</option>
+          <option value="ease-out">Ease Out</option>
+          <option value="ease-in-out" selected>Ease In Out</option>
+        </select>
+      </div>
+      <div>
+        <label for="animationDirection">Animation Direction</label>
+        <select id="animationDirection" aria-label="Select animation direction">
+          <option value="normal" selected>Normal</option>
+          <option value="reverse">Reverse</option>
+          <option value="alternate">Alternate</option>
+          <option value="alternate-reverse">Alternate Reverse</option>
+        </select>
+      </div>
+      <div style="flex: 1 1 100px; display: flex; flex-direction: column; justify-content: flex-end;">
+        <button id="generateBtn" aria-label="Generate loader animation">Generate Loader</button>
+        <button id="copyBtn" aria-label="Copy generated code to clipboard" style="margin-top:8px; background:#27ae60;">Copy Code</button>
+        <button id="toggleAnimBtn" aria-label="Pause and resume animation" style="margin-top:8px; background:#8e44ad;">Pause Animation</button>
+      </div>
+    </div>
+
+    <div id="preview" aria-live="polite" aria-label="Loader preview area"></div>
+
+    <label for="codeOutput">Generated Code (HTML + CSS)</label>
+    <pre id="codeOutput" aria-describedby="codeDescription"></pre>
+    <div id="codeDescription" class="sr-only">This code block displays the HTML and CSS code for the customized loader animation.</div>
+  </div>
+
+  <div class="about-section" role="region" aria-label="About section of the loader animation generator">
+    <h2>About this Loader Animation Generator</h2>
+    <p>
+      This advanced loader animation generator offers a powerful and intuitive way to create attractive loading animations tailored to your project’s specific design requirements. Loaders are important user interface elements that provide valuable feedback to users while content or data is being processed in the background. By presenting a visually appealing and animated indicator, loaders keep users engaged and informed, preventing frustration during wait times.
+    </p>
+    <p>
+      We include multiple loader styles such as spinners, bouncing dots, scaling bars, pulsing circles, dual rings, and chasing dots, each customizable in terms of color, size, thickness, animation speed, easing, and direction. This level of customization empowers you to create loaders that seamlessly integrate with your website’s or application’s branding and user experience. The animations leverage efficient CSS keyframes for smooth and performant effects, requiring minimal JavaScript.
+    </p>
+    <p>
+      The user-friendly interface provides instant, real-time previews and outputs ready-to-use HTML and CSS code snippets, so developers and designers can quickly implement polished loaders in their projects. Additional functions like pause/resume animations and copying code to the clipboard enhance developer convenience. A dark mode toggle can also be added if desired in the future.
+    </p>
+    <p>
+      By using this generator, you can significantly improve user experience by signaling background activity effectively, managing user expectations, and maintaining engagement with stylish, responsive, and accessible loading animations.
+    </p>
+  </div>
+
+<script>
+  const preview = document.getElementById('preview');
+  const loaderType = document.getElementById('loaderType');
+  const loaderColor = document.getElementById('loaderColor');
+  const loaderSize = document.getElementById('loaderSize');
+  const spinnerThickness = document.getElementById('spinnerThickness');
+  const animationSpeed = document.getElementById('animationSpeed');
+  const animationEasing = document.getElementById('animationEasing');
+  const animationDirection = document.getElementById('animationDirection');
+  const generateBtn = document.getElementById('generateBtn');
+  const codeOutput = document.getElementById('codeOutput');
+  const copyBtn = document.getElementById('copyBtn');
+  const toggleAnimBtn = document.getElementById('toggleAnimBtn');
+
+  let animationPaused = false;
+
+  function generateLoader() {
+    preview.innerHTML = '';
+    const type = loaderType.value;
+    const color = loaderColor.value;
+    const size = Math.min(Math.max(parseInt(loaderSize.value, 10), 20), 300);
+    const thickness = Math.min(Math.max(parseInt(spinnerThickness.value, 10), 1), 40);
+    const speed = Math.min(Math.max(parseFloat(animationSpeed.value), 0.1), 10);
+    const easing = animationEasing.value;
+    const direction = animationDirection.value;
+
+    // Set CSS variables on preview for animation
+    preview.style.setProperty('--loader-color', color);
+    preview.style.setProperty('--loader-speed', `${speed}s`);
+    preview.style.setProperty('--loader-size', `${size}px`);
+    preview.style.setProperty('--spinner-thickness', `${thickness}px`);
+    preview.style.setProperty('--animation-direction', direction);
+    preview.style.setProperty('--animation-easing', easing);
+
+    let html = '';
+    let css = '';
+
+    if (type === 'spinner') {
+      html = `<div class="loader-spinner" aria-label="Spinner loader"></div>`;
+      css = `
+/* Spinner Loader */
+.loader-spinner {
+  border: ${thickness}px solid transparent;
+  border-top-color: ${color};
+  border-radius: 50%;
+  animation: spinner-rotate ${speed}s ${easing} infinite;
+  width: ${size}px;
+  height: ${size}px;
+  animation-direction: ${direction};
+}
+@keyframes spinner-rotate {
+  100% { transform: rotate(360deg); }
+}
+      `;
+    } else if (type === 'dots') {
+      const dotCount = 3;
+      const dotSize = Math.round(size / 5);
+      html = `<div class="loader-dots" aria-label="Dots loader" style="gap:${dotSize/2}px">` +
+             Array(dotCount).fill().map((_, i) => `<div class="loader-dot" style="animation-delay:${(speed/ (dotCount)) * i}s"></div>`).join('') +
+             `</div>`;
+      css = `
+/* Dots Loader */
+.loader-dots {
+  display: flex;
+}
+.loader-dot {
+  width: ${dotSize}px;
+  height: ${dotSize}px;
+  background-color: ${color};
+  border-radius: 50%;
+  animation: dots-bounce ${speed}s ${easing} infinite;
+  animation-direction: ${direction};
+}
+${[...Array(dotCount).keys()].map(i => `
+.loader-dot:nth-child(${i+1}) {
+  animation-delay: ${(speed/(dotCount))*i}s;
+}`).join('')}
+@keyframes dots-bounce {
+  0%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-20%);
+  }
+}
+      `;
+    } else if (type === 'bars') {
+      const barCount = 5;
+      const barWidth = Math.round(size / 10);
+      html = `<div class="loader-bars" aria-label="Bars loader" style="gap:${barWidth / 2}px;">` +
+             Array(barCount).fill().map((_, i) =>
+               `<div class="loader-bar" style="animation-delay:${(speed / barCount) * i}s; width:${barWidth}px;"></div>`
+             ).join('') +
+             `</div>`;
+      css = `
+/* Bars Loader */
+.loader-bars {
+  display: flex;
+  align-items: flex-end;
+}
+.loader-bar {
+  background-color: ${color};
+  width: ${barWidth}px;
+  height: 30%;
+  animation: bars-scale ${speed}s ${easing} infinite;
+  border-radius: 2px;
+  animation-direction: ${direction};
+}
+${[...Array(barCount).keys()].map(i => `
+.loader-bar:nth-child(${i+1}) {
+  animation-delay: ${(speed / barCount) * i}s;
+}`).join('')}
+@keyframes bars-scale {
+  0%, 40%, 100% { height: 30%; }
+  20% { height: 80%; }
+}
+      `;
+    } else if (type === 'pulse') {
+      html = `<div class="loader-pulse" aria-label="Pulsing Circle loader"></div>`;
+      css = `
+/* Pulsing Circle Loader */
+.loader-pulse {
+  width: ${size}px;
+  height: ${size}px;
+  background-color: ${color};
+  border-radius: 50%;
+  animation: pulse-scale ${speed}s ${easing} infinite;
+  animation-direction: ${direction};
+}
+@keyframes pulse-scale {
+  0%, 100% { transform: scale(1); opacity: 1;}
+  50% { transform: scale(1.3); opacity: 0.6;}
+}
+      `;
+    } else if (type === 'dualRing') {
+      html = `<div class="loader-dual-ring" aria-label="Dual Ring loader"></div>`;
+      css = `
+/* Dual Ring Loader */
+.loader-dual-ring {
+  display: inline-block;
+  width: ${size}px;
+  height: ${size}px;
+}
+.loader-dual-ring:after {
+  content: " ";
+  display: block;
+  width: ${size}px;
+  height: ${size}px;
+  margin: 1px;
+  border-radius: 50%;
+  border: ${thickness}px solid ${color};
+  border-color: ${color} transparent ${color} transparent;
+  animation: dual-ring-spin ${speed}s linear infinite;
+  animation-direction: ${direction};
+  animation-timing-function: ${easing};
+}
+@keyframes dual-ring-spin {
+  0% { transform: rotate(0deg);}
+  100% { transform: rotate(360deg);}
+}
+      `;
+    } else if (type === 'chasingDots') {
+      const dotSize = Math.round(size / 5);
+      html = `
+<div class="loader-chasing-dots" aria-label="Chasing Dots loader" style="width:${size}px;height:${size}px;">
+  <div class="dot1"></div>
+  <div class="dot2"></div>
+</div>
+      `;
+      css = `
+/* Chasing Dots Loader */
+.loader-chasing-dots {
+  position: relative;
+  width: ${size}px;
+  height: ${size}px;
+}
+.loader-chasing-dots .dot1,
+.loader-chasing-dots .dot2 {
+  position: absolute;
+  top: 50%;
+  width: ${dotSize}px;
+  height: ${dotSize}px;
+  background-color: ${color};
+  border-radius: 50%;
+  transform: translateY(-50%);
+  animation-timing-function: ${easing};
+  animation-direction: ${direction};
+}
+.loader-chasing-dots .dot1 {
+  left: 0;
+  animation: chasing-dot1-spin ${speed}s infinite ease-in-out;
+}
+.loader-chasing-dots .dot2 {
+  left: ${Math.floor(size/2)}px;
+  animation: chasing-dot2-spin ${speed}s infinite ease-in-out;
+}
+@keyframes chasing-dot1-spin {
+  0%, 100% { transform: translateY(-50%) rotate(0deg); }
+  50% { transform: translateY(-50%) rotate(180deg); }
+}
+@keyframes chasing-dot2-spin {
+  0%, 100% { transform: translateY(-50%) rotate(0deg); }
+  50% { transform: translateY(-50%) rotate(-180deg); }
+}
+      `;
+    }
+
+    preview.innerHTML = html;
+    animationPaused = false;
+    toggleAnimBtn.textContent = 'Pause Animation';
+
+    // Display final generated code
+    codeOutput.textContent = `
+<!-- HTML -->
+${html.trim()}
+
+<!-- CSS -->
+<style>
+${css.trim()}
+</style>
+    `.trim();
+  }
+
+  generateBtn.addEventListener('click', generateLoader);
+
+  // Copy code to clipboard
+  copyBtn.addEventListener('click', () => {
+    if (!navigator.clipboard) {
+      alert('Clipboard API not supported in this browser.');
+      return;
+    }
+    navigator.clipboard.writeText(codeOutput.textContent).then(() => {
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => copyBtn.textContent = 'Copy Code', 1500);
+    });
+  });
+
+  // Pause and resume animation
+  toggleAnimBtn.addEventListener('click', () => {
+    animationPaused = !animationPaused;
+    const children = preview.querySelectorAll('*');
+
+    children.forEach(el => {
+      if (animationPaused) {
+        el.style.animationPlayState = 'paused';
+      } else {
+        el.style.animationPlayState = 'running';
+      }
+    });
+    toggleAnimBtn.textContent = animationPaused ? 'Resume Animation' : 'Pause Animation';
+  });
+
+  // Generate the initial loader on page load
+  generateLoader();
+</script>
+</body>
+</html>
