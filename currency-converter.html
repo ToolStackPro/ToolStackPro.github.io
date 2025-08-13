@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Currency Converter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7f8;
+      max-width: 400px;
+      margin: 40px auto;
+      padding: 20px;
+      color: #333;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin: 12px 0 6px;
+      text-align: left;
+    }
+    input[type="number"], select {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #2980b9;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 20px;
+      width: 100%;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #3498db;
+    }
+    #result {
+      margin-top: 25px;
+      background: #ecf0f1;
+      padding: 15px;
+      border-radius: 4px;
+      font-size: 1.25rem;
+      color: #2c3e50;
+      min-height: 40px;
+    }
+    .about-section {
+      margin-top: 35px;
+      background: #fff3cd;
+      border-left: 5px solid #ffeeba;
+      padding: 15px 20px;
+      border-radius: 6px;
+      color: #856404;
+      font-size: 1em;
+      line-height: 1.5;
+      text-align: left;
+      box-shadow: 0 0 10px rgba(255, 235, 179, 0.5);
+    }
+    .about-section h2 {
+      margin-top: 0;
+      color: #7a5f00;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .about-section p:last-child {
+      font-size: 0.85em;
+      color: #555;
+      text-transform: lowercase;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Currency Converter</h1>
+  <label for="amount">Amount</label>
+  <input type="number" id="amount" min="0" step="any" value="1" aria-label="Amount to convert" />
+
+  <label for="fromCurrency">From Currency</label>
+  <select id="fromCurrency" aria-label="Select source currency"></select>
+
+  <label for="toCurrency">To Currency</label>
+  <select id="toCurrency" aria-label="Select target currency"></select>
+
+  <button id="convertBtn">Convert</button>
+
+  <div id="result" aria-live="polite" aria-atomic="true"></div>
+
+  <div class="about-section" role="region" aria-label="About this currency converter">
+    <h2>About this Currency Converter</h2>
+    <p>
+      This currency converter is a client-side web application designed to help you quickly and accurately convert monetary amounts between different world currencies using real-time exchange rates. It retrieves current rates from a reliable public API, ensuring conversions are up-to-date and relevant for financial planning, travel budgeting, and international transactions.
+    </p>
+    <p>
+      The intuitive interface allows you to input any amount, select your source currency and the desired target currency, then obtain the converted amount instantly upon request. The converter supports a wide range of global currencies and handles decimal amounts accurately. The application runs entirely in your browser without needing any backend server, making it fast, privacy-friendly, and easy to deploy on any website.
+    </p>
+    <p>
+      Beyond simple conversion, this tool promotes financial awareness and decision-making confidence by providing transparent currency information. Whether you are a traveler, entrepreneur, or casual user, this responsive and accessible converter helps bridge currency differences efficiently. Its clean design and straightforward user experience ensure it works well across devices from desktops to mobile phones.
+    </p>
+    <p>
+      This solution leverages modern JavaScript features like the Fetch API for asynchronous data retrieval and dynamic DOM updates, making it both educational for developers and practical for users worldwide.
+    </p>
+    <p>
+      please note: exchange rates are fetched from public APIs and may not be 100% accurate or up-to-date. use this converter for general guidance only and not for critical financial decisions.
+    </p>
+  </div>
+
+<script>
+  const API_URL = 'https://api.exchangerate-api.com/v4/latest/USD'; // Base currency USD here
+
+  const amountInput = document.getElementById('amount');
+  const fromCurrencySelect = document.getElementById('fromCurrency');
+  const toCurrencySelect = document.getElementById('toCurrency');
+  const convertBtn = document.getElementById('convertBtn');
+  const resultDiv = document.getElementById('result');
+
+  let rates = {};
+
+  async function fetchRates() {
+    try {
+      const response = await fetch(API_URL);
+      if (!response.ok) throw new Error('Network response was not ok');
+      const data = await response.json();
+      rates = data.rates;
+
+      const currencies = Object.keys(rates).sort();
+      populateCurrencyDropdown(fromCurrencySelect, currencies);
+      populateCurrencyDropdown(toCurrencySelect, currencies);
+
+      fromCurrencySelect.value = 'USD';
+      toCurrencySelect.value = 'EUR';
+
+    } catch (error) {
+      resultDiv.textContent = 'Failed to load exchange rates. Please try again later.';
+      convertBtn.disabled = true;
+      console.error('Error fetching rates:', error);
+    }
+  }
+
+  function populateCurrencyDropdown(selectElem, currencies) {
+    selectElem.innerHTML = ''; // Clear previous options if any
+    currencies.forEach(currency => {
+      const option = document.createElement('option');
+      option.value = currency;
+      option.textContent = currency;
+      selectElem.appendChild(option);
+    });
+  }
+
+  function convertCurrency() {
+    const amount = parseFloat(amountInput.value);
+    const fromCurrency = fromCurrencySelect.value;
+    const toCurrency = toCurrencySelect.value;
+
+    if (isNaN(amount) || amount <= 0) {
+      alert('Please enter a valid amount greater than 0.');
+      return;
+    }
+
+    if (!rates[fromCurrency] || !rates[toCurrency]) {
+      alert('Selected currencies are not supported.');
+      return;
+    }
+
+    // Convert amount to USD base, then to target currency
+    const usdAmount = amount / rates[fromCurrency];
+    const converted = usdAmount * rates[toCurrency];
+
+    resultDiv.textContent = `${amount.toFixed(2)} ${fromCurrency} = ${converted.toFixed(2)} ${toCurrency}`;
+  }
+
+  convertBtn.addEventListener('click', convertCurrency);
+
+  // Optional: allow Enter key to trigger conversion
+  amountInput.addEventListener('keyup', (event) => {
+    if (event.key === 'Enter') {
+      convertCurrency();
+    }
+  });
+  fromCurrencySelect.addEventListener('change', () => { resultDiv.textContent = ''; });
+  toCurrencySelect.addEventListener('change', () => { resultDiv.textContent = ''; });
+
+  // Initialize on page load
+  fetchRates();
+</script>
+</body>
+</html>
