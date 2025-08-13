@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QR Code Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7f8;
+      max-width: 400px;
+      margin: 40px auto;
+      padding: 20px;
+      color: #333;
+      text-align: center;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #2980b9;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #3498db;
+    }
+    #qrcode {
+      margin-top: 25px;
+      display: inline-block;
+      border: 1px solid #ddd;
+      padding: 15px;
+      background-color: white;
+      border-radius: 8px;
+    }
+    .about-section {
+      margin-top: 30px;
+      background: #fff3cd;
+      border-left: 5px solid #ffeeba;
+      padding: 15px 20px;
+      border-radius: 6px;
+      color: #856404;
+      font-size: 1em;
+      line-height: 1.5;
+      text-align: left;
+      box-shadow: 0 0 10px rgba(255, 235, 179, 0.5);
+    }
+    .about-section h2 {
+      margin-top: 0;
+      color: #7a5f00;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>QR Code Generator</h1>
+  <input type="text" id="text-input" placeholder="Enter text or URL" aria-label="Text or URL input for QR code" />
+  <button id="generate-btn" aria-label="Generate QR code button">Generate QR Code</button>
+  <div id="qrcode" aria-live="polite" aria-label="Generated QR code"></div>
+
+  <div class="about-section" role="region" aria-label="About this QR code generator">
+    <h2>About this QR Code Generator</h2>
+    <p>
+      This QR code generator is a practical tool designed to help you easily create QR codes from any text or URL you provide. QR codes (Quick Response codes) have become a ubiquitous means of sharing information quickly and efficiently in a wide range of industries, including marketing, retail, education, and logistics. By converting text or links into visually scannable codes, this generator helps bridge the gap between physical and digital mediums seamlessly.
+    </p>
+    <p>
+      The generated QR codes use high error correction levels, making them reliable and scannable even if partially damaged or distorted. This generator supports customization of size and renders the QR code directly inside your web browser without needing any server-side processing. The result is a clean and crisp QR code image that can be scanned instantly by any modern smartphone camera or QR code scanner app.
+    </p>
+    <p>
+      Whether you want to create QR codes for business cards, promotional flyers, event tickets, or quick links to websites and documents, this tool is perfect for fast and fuss-free usage. The responsive design ensures the interface works well on desktops, tablets, and mobile devices alike. You can easily copy or save the generated QR codes and integrate them into your projects or print them for physical distribution.
+    </p>
+    <p>
+      QR codes generate a bridge to faster interaction, facilitating seamless user engagement and simplifying access to digital content. This generator is built with accessibility and user experience in mind, making it an excellent addition to your digital toolbox.
+    </p>
+  </div>
+
+  <!-- Include QRCode.js library from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    const qrcodeContainer = document.getElementById('qrcode');
+    const generateBtn = document.getElementById('generate-btn');
+    const textInput = document.getElementById('text-input');
+    let qrCode;
+
+    function generateQRCode() {
+      const text = textInput.value.trim();
+      if (!text) {
+        alert('Please enter text or URL to generate QR code.');
+        return;
+      }
+
+      // Clear previous QR Code if exists
+      qrcodeContainer.innerHTML = '';
+
+      // Create new QRCode object and generate
+      qrCode = new QRCode(qrcodeContainer, {
+        text: text,
+        width: 200,
+        height: 200,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H, // High error correction
+      });
+    }
+
+    generateBtn.addEventListener('click', generateQRCode);
+
+    // Optionally, generate QR code when pressing Enter in the input field
+    textInput.addEventListener('keyup', (event) => {
+      if (event.key === 'Enter') {
+        generateQRCode();
+      }
+    });
+  </script>
+</body>
+</html>
