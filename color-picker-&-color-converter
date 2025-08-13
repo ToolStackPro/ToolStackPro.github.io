@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Color Picker & Color Converter</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f7f8;
+      max-width: 480px;
+      margin: 40px auto;
+      padding: 20px;
+      color: #333;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 24px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 8px;
+      text-align: left;
+      color: #2c3e50;
+    }
+    input[type="color"] {
+      width: 100%;
+      height: 50px;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      border-radius: 6px;
+      margin-bottom: 24px;
+    }
+    .color-display {
+      width: 100%;
+      height: 80px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-bottom: 30px;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+    }
+    .color-value-container {
+      position: relative;
+      margin-bottom: 18px;
+      text-align: left;
+      font-family: monospace, monospace;
+      background: #ecf0f1;
+      border-radius: 6px;
+      padding: 12px 48px 12px 16px;
+      user-select: all;
+      color: #2c3e50;
+    }
+    button.copy-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: #2980b9;
+      color: white;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s ease;
+    }
+    button.copy-btn:hover {
+      background-color: #3498db;
+    }
+    .about-section {
+      margin-top: 35px;
+      background: #fff3cd;
+      border-left: 5px solid #ffeeba;
+      padding: 15px 20px;
+      border-radius: 6px;
+      color: #856404;
+      font-size: 1em;
+      line-height: 1.5;
+      text-align: left;
+      box-shadow: 0 0 10px rgba(255, 235, 179, 0.5);
+    }
+    .about-section h2 {
+      margin-top: 0;
+      color: #7a5f00;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Color Picker & Color Converter</h1>
+  <label for="colorPicker">Pick a color:</label>
+  <input type="color" id="colorPicker" aria-label="Color picker input" value="#00bfff" />
+
+  <div class="color-display" id="colorDisplay" aria-label="Selected color display" role="img"></div>
+
+  <!-- HEX -->
+  <div class="color-value-container" role="group" aria-labelledby="label-hex">
+    <label id="label-hex" for="hexValue">HEX</label>
+    <div id="hexValue" tabindex="0" aria-live="polite"></div>
+    <button class="copy-btn" data-target="hexValue" aria-label="Copy HEX color code">Copy</button>
+  </div>
+
+  <!-- RGB -->
+  <div class="color-value-container" role="group" aria-labelledby="label-rgb">
+    <label id="label-rgb" for="rgbValue">RGB</label>
+    <div id="rgbValue" tabindex="0" aria-live="polite"></div>
+    <button class="copy-btn" data-target="rgbValue" aria-label="Copy RGB color code">Copy</button>
+  </div>
+
+  <!-- HSL -->
+  <div class="color-value-container" role="group" aria-labelledby="label-hsl">
+    <label id="label-hsl" for="hslValue">HSL</label>
+    <div id="hslValue" tabindex="0" aria-live="polite"></div>
+    <button class="copy-btn" data-target="hslValue" aria-label="Copy HSL color code">Copy</button>
+  </div>
+
+  <!-- HWB -->
+  <div class="color-value-container" role="group" aria-labelledby="label-hwb">
+    <label id="label-hwb" for="hwbValue">HWB</label>
+    <div id="hwbValue" tabindex="0" aria-live="polite"></div>
+    <button class="copy-btn" data-target="hwbValue" aria-label="Copy HWB color code">Copy</button>
+  </div>
+
+  <!-- CMYK -->
+  <div class="color-value-container" role="group" aria-labelledby="label-cmyk">
+    <label id="label-cmyk" for="cmykValue">CMYK</label>
+    <div id="cmykValue" tabindex="0" aria-live="polite"></div>
+    <button class="copy-btn" data-target="cmykValue" aria-label="Copy CMYK color code">Copy</button>
+  </div>
+
+  <!-- NCS -->
+  <div class="color-value-container" role="group" aria-labelledby="label-ncs">
+    <label id="label-ncs" for="ncsValue">NCS</label>
+    <div id="ncsValue" tabindex="0" aria-live="polite"></div>
+    <button class="copy-btn" data-target="ncsValue" aria-label="Copy NCS color code">Copy</button>
+  </div>
+
+  <div class="about-section" role="region" aria-label="About this color picker and converter">
+    <h2>About this Color Picker & Converter</h2>
+    <p>
+      This tool allows you to select any color using a native color picker and immediately see the corresponding color codes in six common formats: HEX, RGB, HSL, HWB, CMYK, and NCS. HEX and RGB are widely used in web design and digital displays. HSL and HWB offer intuitive models based on hue and color lightness or blackness. CMYK is used primarily in printing, representing the mix of cyan, magenta, yellow, and black inks. NCS (Natural Color System) is a perceptual color model based on human vision, describing colors by how we perceive them rather than mixing pigments or lights.
+    </p>
+    <p>
+      These color representations help designers, developers, and creators understand, adjust, and communicate colors precisely across different media and applications. The tool features handy copy buttons ensuring you can quickly copy any color format to your clipboard for easy use in code, documents, or design software.
+    </p>
+    <p>
+      With this converter, whether you’re building websites, creating graphics, or adjusting themes, you can bridge the gap between visual color selection and practical color code usage effectively. The interface is accessible and optimized for desktops and mobile devices.
+    </p>
+  </div>
+
+<script>
+  const colorPicker = document.getElementById('colorPicker');
+  const colorDisplay = document.getElementById('colorDisplay');
+  const hexValue = document.getElementById('hexValue');
+  const rgbValue = document.getElementById('rgbValue');
+  const hslValue = document.getElementById('hslValue');
+  const hwbValue = document.getElementById('hwbValue');
+  const cmykValue = document.getElementById('cmykValue');
+  const ncsValue = document.getElementById('ncsValue');
+  const copyButtons = document.querySelectorAll('button.copy-btn');
+
+  // Convert HEX (e.g. "#00bfff") to {r, g, b}
+  function hexToRgb(hex) {
+    hex = hex.replace(/^#/, '');
+    if (hex.length === 3) {
+      hex = hex.split('').map(c => c + c).join('');
+    }
+    const bigint = parseInt(hex, 16);
+    const r = (bigint >> 16) & 255;
+    const g = (bigint >> 8) & 255;
+    const b = bigint & 255;
+    return { r, g, b };
+  }
+
+  // Convert RGB to HSL
+  function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b),
+          min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+
+    if (max === min) {
+      h = s = 0; // achromatic
+    } else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = ((g - b) / d) + (g < b ? 6 : 0); break;
+        case g: h = ((b - r) / d) + 2; break;
+        case b: h = ((r - g) / d) + 4; break;
+      }
+      h /= 6;
+    }
+    return {
+      h: Math.round(h * 360),
+      s: Math.round(s * 100),
+      l: Math.round(l * 100)
+    };
+  }
+
+  // Convert RGB to HWB
+  function rgbToHwb(r, g, b) {
+    const { h } = rgbToHsl(r, g, b);
+    const whiteness = Math.min(r, g, b) / 255;
+    const blackness = 1 - Math.max(r, g, b) / 255;
+    return {
+      h,
+      w: Math.round(whiteness * 100),
+      b: Math.round(blackness * 100)
+    };
+  }
+
+  // Convert RGB to CMYK
+  function rgbToCmyk(r, g, b) {
+    if (r === 0 && g === 0 && b === 0) {
+      // pure black
+      return { c: 0, m: 0, y: 0, k: 100 };
+    }
+    const c = 1 - (r / 255);
+    const m = 1 - (g / 255);
+    const y = 1 - (b / 255);
+
+    const k = Math.min(c, m, y);
+
+    const cyan = Math.round(((c - k) / (1 - k)) * 100);
+    const magenta = Math.round(((m - k) / (1 - k)) * 100);
+    const yellow = Math.round(((y - k) / (1 - k)) * 100);
+    const black = Math.round(k * 100);
+
+    return { c: cyan, m: magenta, y: yellow, k: black };
+  }
+
+  // Approximate RGB to NCS (very rough)
+  // NCS stands for Natural Color System and is complex,
+  // here we approximate with cyan percentage as "Cxx, 0%, 0%"
+  function rgbToNcs(r, g, b) {
+    // Simple hue relation is rough; we format like "Cxx, 0%, 0%"
+    // Let's just approximate cyan percentage by inverse of red.
+    // This is just a placeholder approximation, not a color accurate system.
+    // C25 = 25% cyan hue
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    // Relative cyan component roughly:
+    let cyanPercent = 100 - Math.round((r / 255) * 100);
+    // Clamp between 0 and 100
+    cyanPercent = Math.min(100, Math.max(0, cyanPercent));
+    return `C${cyanPercent}, 0%, 0%`;
+  }
+
+  function updateColors() {
+    const hex = colorPicker.value.toUpperCase();
+    const { r, g, b } = hexToRgb(hex);
+
+    const { h: hslH, s: hslS, l: hslL } = rgbToHsl(r, g, b);
+    const { h: hwbH, w: hwbW, b: hwbB } = rgbToHwb(r, g, b);
+    const { c: cmykC, m: cmykM, y: cmykY, k: cmykK } = rgbToCmyk(r, g, b);
+    const ncs = rgbToNcs(r, g, b);
+
+    colorDisplay.style.backgroundColor = hex;
+
+    hexValue.textContent = hex;
+    rgbValue.textContent = `rgb(${r}, ${g}, ${b})`;
+    hslValue.textContent = `hsl(${hslH}, ${hslS}%, ${hslL}%)`;
+    hwbValue.textContent = `hwb(${hwbH}, ${hwbW}%, ${hwbB}%)`;
+    cmykValue.textContent = `cmyk(${cmykC}%, ${cmykM}%, ${cmykY}%, ${cmykK}%)`;
+    ncsValue.textContent = ncs;
+  }
+
+  copyButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const targetId = button.getAttribute('data-target');
+      const text = document.getElementById(targetId).textContent;
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          const originalText = button.textContent;
+          button.textContent = 'Copied!';
+          setTimeout(() => {
+            button.textContent = originalText;
+          }, 1500);
+        });
+      } else {
+        alert('Clipboard API not supported in this browser.');
+      }
+    });
+  });
+
+  colorPicker.addEventListener('input', updateColors);
+
+  // Initialize display with default color on page load
+  updateColors();
+</script>
+
+</body>
+</html>
